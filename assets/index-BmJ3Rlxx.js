@@ -638,6 +638,10 @@ Error generating stack: `+le.message+`
       color: ${({theme:e})=>e.colors.text};
       border-color: ${({theme:e})=>e.colors.border};
     }
+
+    .CodeMirror-cursor {
+      border-left: 1px solid ${({theme:e})=>e.colors.text} !important;
+    }
     
     .editor-preview {
       background: ${({theme:e})=>e.colors.background};
