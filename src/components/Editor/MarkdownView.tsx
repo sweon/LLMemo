@@ -2,6 +2,7 @@ import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import rehypeKatex from 'rehype-katex';
 import remarkMath from 'remark-math';
+import remarkGfm from 'remark-gfm';
 import 'katex/dist/katex.min.css';
 import styled from 'styled-components';
 
@@ -90,14 +91,14 @@ const MarkdownContainer = styled.div`
 `;
 
 export const MarkdownView: React.FC<{ content: string }> = ({ content }) => {
-    return (
-        <MarkdownContainer>
-            <ReactMarkdown
-                remarkPlugins={[remarkMath]}
-                rehypePlugins={[rehypeKatex]}
-            >
-                {content}
-            </ReactMarkdown>
-        </MarkdownContainer>
-    );
+  return (
+    <MarkdownContainer>
+      <ReactMarkdown
+        remarkPlugins={[remarkMath, remarkGfm]}
+        rehypePlugins={[rehypeKatex]}
+      >
+        {content}
+      </ReactMarkdown>
+    </MarkdownContainer>
+  );
 };
