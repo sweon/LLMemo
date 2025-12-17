@@ -11,10 +11,19 @@ const downloadFile = (content: string, fileName: string, contentType: string) =>
     a.click();
 };
 
-export const exportData = async () => {
-    const logs = await db.logs.toArray();
+export const exportData = async (selectedLogIds?: number[]) => {
+    let logs = await db.logs.toArray();
+
+    if (selectedLogIds && selectedLogIds.length > 0) {
+        logs = logs.filter(l => l.id !== undefined && selectedLogIds.includes(l.id));
+    }
+
     const models = await db.models.toArray();
-    const comments = await db.comments.toArray();
+    let comments = await db.comments.toArray();
+
+    if (selectedLogIds && selectedLogIds.length > 0) {
+        comments = comments.filter(c => selectedLogIds.includes(c.logId));
+    }
 
     const data = {
         version: 1,
@@ -24,7 +33,11 @@ export const exportData = async () => {
         comments
     };
 
-    downloadFile(JSON.stringify(data, null, 2), `llm-logs-backup-${new Date().toISOString().slice(0, 10)}.json`, 'application/json');
+    const fileName = selectedLogIds && selectedLogIds.length > 0
+        ? `llm-logs-partial-${new Date().toISOString().slice(0, 10)}.json`
+        : `llm-logs-backup-${new Date().toISOString().slice(0, 10)}.json`;
+
+    downloadFile(JSON.stringify(data, null, 2), fileName, 'application/json');
 };
 
 export const importData = async (file: File) => {

@@ -68,10 +68,110 @@ const Button = styled.button`
   }
 `;
 
+const ModalOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+`;
+
+const ModalContent = styled.div`
+  background: ${({ theme }) => theme.colors.surface};
+  padding: 2rem;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+`;
+
+const ModalHeader = styled.h3`
+  margin-top: 0;
+  margin-bottom: 1rem;
+  color: ${({ theme }) => theme.colors.text};
+`;
+
+const ModalBody = styled.div`
+  flex: 1;
+  overflow-y: auto;
+  margin-bottom: 1.5rem;
+`;
+
+const ModalFooter = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+`;
+
+const RadioLabel = styled.label`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+  color: ${({ theme }) => theme.colors.text};
+`;
+
+const ScrollableList = styled.div`
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: 4px;
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 0.5rem;
+  margin-top: 0.5rem;
+  margin-left: 1.5rem;
+  background: ${({ theme }) => theme.colors.background};
+`;
+
+const CheckboxLabel = styled.label`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  color: ${({ theme }) => theme.colors.text};
+`;
+
 export const SettingsPage: React.FC = () => {
     const models = useLiveQuery(() => db.models.orderBy('id').reverse().toArray());
     const [newModel, setNewModel] = useState('');
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const [showExportModal, setShowExportModal] = useState(false);
+    const [exportMode, setExportMode] = useState<'all' | 'selected'>('all');
+    const [selectedLogs, setSelectedLogs] = useState<Set<number>>(new Set());
+    const allLogs = useLiveQuery(() => db.logs.orderBy('createdAt').reverse().toArray());
+
+    const handleExportClick = () => {
+        setShowExportModal(true);
+        setExportMode('all');
+        setSelectedLogs(new Set());
+    };
+
+    const confirmExport = async () => {
+        if (exportMode === 'all') {
+            await exportData();
+        } else {
+            await exportData(Array.from(selectedLogs));
+        }
+        setShowExportModal(false);
+    };
+
+    const toggleLogSelection = (id: number) => {
+        const next = new Set(selectedLogs);
+        if (next.has(id)) next.delete(id);
+        else next.add(id);
+        setSelectedLogs(next);
+    };
 
     const handleAddModel = async () => {
         if (newModel.trim()) {
@@ -126,7 +226,7 @@ export const SettingsPage: React.FC = () => {
             <Section>
                 <Title>Data Management</Title>
                 <div style={{ display: 'flex', gap: '1rem' }}>
-                    <Button onClick={exportData}><FiDownload /> Export / Backup</Button>
+                    <Button onClick={handleExportClick}><FiDownload /> Export / Backup</Button>
 
                     <Button onClick={() => fileInputRef.current?.click()} style={{ background: '#10b981' }}>
                         <FiUpload /> Import / Restore
@@ -143,6 +243,62 @@ export const SettingsPage: React.FC = () => {
                     Note: Importing merges data. Duplicate items (by ID) are treated as new entries with mapped relationships.
                 </p>
             </Section>
+
+            {showExportModal && (
+                <ModalOverlay onClick={() => setShowExportModal(false)}>
+                    <ModalContent onClick={e => e.stopPropagation()}>
+                        <ModalHeader>Export Data</ModalHeader>
+                        <ModalBody>
+                            <RadioLabel>
+                                <input
+                                    type="radio"
+                                    checked={exportMode === 'all'}
+                                    onChange={() => setExportMode('all')}
+                                />
+                                All Data (Default)
+                            </RadioLabel>
+
+                            <RadioLabel>
+                                <input
+                                    type="radio"
+                                    checked={exportMode === 'selected'}
+                                    onChange={() => setExportMode('selected')}
+                                />
+                                Select Logs
+                            </RadioLabel>
+
+                            {exportMode === 'selected' && (
+                                <ScrollableList>
+                                    {allLogs?.length === 0 ? (
+                                        <div style={{ padding: '0.5rem', opacity: 0.6 }}>No logs found.</div>
+                                    ) : (
+                                        allLogs?.map(log => (
+                                            <CheckboxLabel key={log.id}>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedLogs.has(log.id!)}
+                                                    onChange={() => toggleLogSelection(log.id!)}
+                                                />
+                                                <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                    {log.title || 'Untitled'}
+                                                </span>
+                                            </CheckboxLabel>
+                                        ))
+                                    )}
+                                </ScrollableList>
+                            )}
+                        </ModalBody>
+                        <ModalFooter>
+                            <Button onClick={() => setShowExportModal(false)} style={{ background: 'transparent', border: '1px solid #ccc', color: 'inherit' }}>
+                                Cancel
+                            </Button>
+                            <Button onClick={confirmExport} disabled={exportMode === 'selected' && selectedLogs.size === 0}>
+                                <FiDownload /> Export
+                            </Button>
+                        </ModalFooter>
+                    </ModalContent>
+                </ModalOverlay>
+            )}
         </Container>
     );
 };
