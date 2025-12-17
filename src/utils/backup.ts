@@ -11,7 +11,7 @@ const downloadFile = (content: string, fileName: string, contentType: string) =>
     a.click();
 };
 
-export const exportData = async (selectedLogIds?: number[]) => {
+export const exportData = async (selectedLogIds?: number[], customFileName?: string) => {
     let logs = await db.logs.toArray();
 
     if (selectedLogIds && selectedLogIds.length > 0) {
@@ -33,9 +33,16 @@ export const exportData = async (selectedLogIds?: number[]) => {
         comments
     };
 
-    const fileName = selectedLogIds && selectedLogIds.length > 0
-        ? `llm-logs-partial-${new Date().toISOString().slice(0, 10)}.json`
-        : `llm-logs-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    let fileName = customFileName;
+    if (!fileName) {
+        fileName = selectedLogIds && selectedLogIds.length > 0
+            ? `llm-logs-partial-${new Date().toISOString().slice(0, 10)}.json`
+            : `llm-logs-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    }
+
+    if (!fileName.toLowerCase().endsWith('.json')) {
+        fileName += '.json';
+    }
 
     downloadFile(JSON.stringify(data, null, 2), fileName, 'application/json');
 };

@@ -149,19 +149,21 @@ export const SettingsPage: React.FC = () => {
     const [showExportModal, setShowExportModal] = useState(false);
     const [exportMode, setExportMode] = useState<'all' | 'selected'>('all');
     const [selectedLogs, setSelectedLogs] = useState<Set<number>>(new Set());
+    const [exportFileName, setExportFileName] = useState('');
     const allLogs = useLiveQuery(() => db.logs.orderBy('createdAt').reverse().toArray());
 
     const handleExportClick = () => {
         setShowExportModal(true);
         setExportMode('all');
         setSelectedLogs(new Set());
+        setExportFileName(`llm-logs-backup-${new Date().toISOString().slice(0, 10)}`);
     };
 
     const confirmExport = async () => {
         if (exportMode === 'all') {
-            await exportData();
+            await exportData(undefined, exportFileName);
         } else {
-            await exportData(Array.from(selectedLogs));
+            await exportData(Array.from(selectedLogs), exportFileName);
         }
         setShowExportModal(false);
     };
@@ -266,6 +268,16 @@ export const SettingsPage: React.FC = () => {
                                 />
                                 Select Logs
                             </RadioLabel>
+
+                            <div style={{ marginTop: '1rem', marginBottom: '1rem' }}>
+                                <label style={{ display: 'block', marginBottom: '0.5rem', color: '#333' }}>Filename (optional):</label>
+                                <Input
+                                    value={exportFileName}
+                                    onChange={e => setExportFileName(e.target.value)}
+                                    placeholder="Enter filename..."
+                                    style={{ width: '100%' }}
+                                />
+                            </div>
 
                             {exportMode === 'selected' && (
                                 <ScrollableList>
