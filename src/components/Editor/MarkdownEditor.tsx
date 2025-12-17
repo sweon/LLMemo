@@ -30,6 +30,10 @@ const EditorWrapper = styled.div`
       color: ${({ theme }) => theme.colors.text};
       border-color: ${({ theme }) => theme.colors.border};
     }
+
+    .CodeMirror-cursor {
+      border-left: 1px solid ${({ theme }) => theme.colors.text} !important;
+    }
     
     .editor-preview {
       background: ${({ theme }) => theme.colors.background};
@@ -58,46 +62,46 @@ const EditorWrapper = styled.div`
 `;
 
 interface MarkdownEditorProps {
-    value: string;
-    onChange: (value: string) => void;
+  value: string;
+  onChange: (value: string) => void;
 }
 
 export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ value, onChange }) => {
-    const customRenderer = (plainText: string) => {
-        return renderToStaticMarkup(
-            <div style={{ padding: '10px' }}>
-                <ReactMarkdown
-                    remarkPlugins={[remarkMath]}
-                    rehypePlugins={[rehypeKatex]}
-                >
-                    {plainText}
-                </ReactMarkdown>
-            </div>
-        );
-    };
-
-    const options = React.useMemo(() => ({
-        spellChecker: false,
-        placeholder: "Type here... (Markdown + Math supported)",
-        previewRender: customRenderer,
-        toolbar: [
-            "bold", "italic", "heading", "|",
-            "quote", "unordered-list", "ordered-list", "|",
-            "link", "image", "|",
-            "preview", "side-by-side", "fullscreen", "|",
-            "guide"
-        ] as any,
-        status: false,
-        maxHeight: "500px", // Adjust as needed or make auto-grow
-    }), []);
-
-    return (
-        <EditorWrapper>
-            <SimpleMDE
-                value={value}
-                onChange={onChange}
-                options={options}
-            />
-        </EditorWrapper>
+  const customRenderer = (plainText: string) => {
+    return renderToStaticMarkup(
+      <div style={{ padding: '10px' }}>
+        <ReactMarkdown
+          remarkPlugins={[remarkMath]}
+          rehypePlugins={[rehypeKatex]}
+        >
+          {plainText}
+        </ReactMarkdown>
+      </div>
     );
+  };
+
+  const options = React.useMemo(() => ({
+    spellChecker: false,
+    placeholder: "Type here... (Markdown + Math supported)",
+    previewRender: customRenderer,
+    toolbar: [
+      "bold", "italic", "heading", "|",
+      "quote", "unordered-list", "ordered-list", "|",
+      "link", "image", "|",
+      "preview", "side-by-side", "fullscreen", "|",
+      "guide"
+    ] as any,
+    status: false,
+    maxHeight: "500px", // Adjust as needed or make auto-grow
+  }), []);
+
+  return (
+    <EditorWrapper>
+      <SimpleMDE
+        value={value}
+        onChange={onChange}
+        options={options}
+      />
+    </EditorWrapper>
+  );
 };
