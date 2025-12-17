@@ -129,80 +129,129 @@ const IconButton = styled.button`
 `;
 
 interface SidebarProps {
-    onCloseMobile: () => void;
+  onCloseMobile: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
-    const [search, setSearch] = useState('');
-    const { mode, toggleTheme } = useTheme();
-    const navigate = useNavigate();
-    const { id } = useParams<{ id: string }>();
+  const [search, setSearch] = useState('');
+  const [sortBy, setSortBy] = useState<'date-desc' | 'date-asc' | 'model'>('date-desc');
+  const { mode, toggleTheme } = useTheme();
+  const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
 
-    const logs = useLiveQuery(async () => {
-        let collection = db.logs.orderBy('createdAt').reverse();
+  const models = useLiveQuery(() => db.models.toArray());
 
-        if (search) {
-            if (search.startsWith('tag:')) {
-                const tag = search.slice(4).trim();
-                if (tag) {
-                    // Use the multi-entry index for tags
-                    return await db.logs.where('tags').equals(tag).reverse().sortBy('createdAt');
-                }
-            } else {
-                // Simple client-side filtering for titles text search (Dexie case-insensitive startsWith is efficient but let's just filter for now)
-                // For efficiency with large datasets, we should use StartsWith or a better index, but filter is fine for personal use.
-                const all = await collection.toArray();
-                const lowerSearch = search.toLowerCase();
-                return all.filter(l => l.title.toLowerCase().includes(lowerSearch) || l.tags.some(t => t.toLowerCase().includes(lowerSearch)));
-            }
+  const logs = useLiveQuery(async () => {
+    let collection = db.logs.toArray();
+    let result = await collection;
+
+    // Filter
+    if (search) {
+      if (search.startsWith('tag:')) {
+        const tag = search.slice(4).trim();
+        // For tag search, we might want to use the index, but mixing with sort can be tricky in Dexie raw.
+        // Simpler to filter in memory for this scale if we want flexible sorting on top.
+        // Or use index then sort in memory.
+        if (tag) {
+          const tagged = await db.logs.where('tags').equals(tag).toArray();
+          result = tagged;
         }
+      } else {
+        const lowerSearch = search.toLowerCase();
+        result = result.filter(l => l.title.toLowerCase().includes(lowerSearch) || l.tags.some(t => t.toLowerCase().includes(lowerSearch)));
+      }
+    }
 
-        return await collection.toArray();
-    }, [search]);
+    // Sort
+    // We need models for model sorting
+    const modelMap = new Map<number, string>();
+    if (models) {
+      models.forEach(m => modelMap.set(m.id!, m.name));
+    }
 
-    return (
-        <SidebarContainer>
-            <Header>
-                <SearchInputWrapper>
-                    <SearchIcon size={16} />
-                    <SearchInput
-                        placeholder="Search... (tag:name for tags)"
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                    />
-                </SearchInputWrapper>
-                <ActionRow>
-                    <Button onClick={() => {
-                        navigate('/new');
-                        onCloseMobile();
-                    }}>
-                        <FiPlus /> New Log
-                    </Button>
-                </ActionRow>
-            </Header>
+    return result.sort((a, b) => {
+      if (sortBy === 'date-desc') {
+        return b.createdAt.getTime() - a.createdAt.getTime();
+      } else if (sortBy === 'date-asc') {
+        return a.createdAt.getTime() - b.createdAt.getTime();
+      } else if (sortBy === 'model') {
+        const nameA = (a.modelId && modelMap.get(a.modelId)) || 'zzzz'; // Unknown/No model at end
+        const nameB = (b.modelId && modelMap.get(b.modelId)) || 'zzzz';
+        return nameA.localeCompare(nameB);
+      }
+      return 0;
+    });
 
-            <LogList>
-                {logs?.map((log) => (
-                    <LogItem
-                        key={log.id}
-                        to={`/log/${log.id}`}
-                        $isActive={Number(id) === log.id}
-                        onClick={onCloseMobile}
-                    >
-                        <LogTitle>{log.title || 'Untitled Log'}</LogTitle>
-                        <LogDate>{format(log.createdAt, 'MMM d, yyyy HH:mm')}</LogDate>
-                    </LogItem>
-                ))}
-            </LogList>
+  }, [search, sortBy, models]);
 
-            <Footer>
-                <IconButton onClick={() => navigate('/settings')} title="Settings">
-                    <FiSettings size={20} />
-                </IconButton>
-                <IconButton onClick={toggleTheme} title="Toggle Theme">
-                    {mode === 'light' ? <FiMoon size={20} /> : <FiSun size={20} />}
-                </IconButton>
-            </Footer>
-        </SidebarContainer>
-    );
+  return (
+    <SidebarContainer>
+      <Header>
+        <SearchInputWrapper>
+          <SearchIcon size={16} />
+          <SearchInput
+            placeholder="Search... (tag:name for tags)"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </SearchInputWrapper>
+        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as any)}
+            style={{
+              flex: 1,
+              padding: '0.5rem',
+              borderRadius: '6px',
+              border: '1px solid #e5e7eb', // theme.colors.border hardcoded for now or use styled comp
+              background: mode === 'dark' ? '#1e293b' : '#fff',
+              color: mode === 'dark' ? '#f8fafc' : '#111827'
+            }}
+          >
+            <option value="date-desc">Date (Newest)</option>
+            <option value="date-asc">Date (Oldest)</option>
+            <option value="model">Model Name</option>
+          </select>
+        </div>
+        <ActionRow>
+          <Button onClick={() => {
+            navigate('/new');
+            onCloseMobile();
+          }}>
+            <FiPlus /> New Log
+          </Button>
+        </ActionRow>
+      </Header>
+
+      <LogList>
+        {logs?.map((log) => (
+          <LogItem
+            key={log.id}
+            to={`/log/${log.id}`}
+            $isActive={Number(id) === log.id}
+            onClick={onCloseMobile}
+          >
+            <LogTitle>{log.title || 'Untitled Log'}</LogTitle>
+            <LogDate>
+              {format(log.createdAt, 'MMM d, yyyy HH:mm')}
+              {sortBy === 'model' && log.modelId && models && (
+                <span style={{ marginLeft: '0.5rem', opacity: 0.7 }}>
+                  • {models.find(m => m.id === log.modelId)?.name}
+                </span>
+              )}
+            </LogDate>
+          </LogItem>
+        ))}
+      </LogList>
+
+      <Footer>
+        <IconButton onClick={() => navigate('/settings')} title="Settings">
+          <FiSettings size={20} />
+        </IconButton>
+        <IconButton onClick={toggleTheme} title="Toggle Theme">
+          {mode === 'light' ? <FiMoon size={20} /> : <FiSun size={20} />}
+        </IconButton>
+      </Footer>
+    </SidebarContainer>
+  );
 };
