@@ -639,10 +639,6 @@ Error generating stack: `+le.message+`
       border-color: ${({theme:e})=>e.colors.border};
     }
     
-    .CodeMirror-cursor {
-      border-left: 1px solid #d1d5db !important; /* Light gray cursor */
-    }
-    
     .editor-preview {
       background: ${({theme:e})=>e.colors.background};
       color: ${({theme:e})=>e.colors.text};
