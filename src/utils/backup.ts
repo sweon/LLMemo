@@ -95,20 +95,40 @@ export const importData = async (file: File) => {
                     for (const l of data.logs) {
                         const oldId = l.id;
                         delete l.id;
+
+                        // Hydrate dates
+                        if (typeof l.createdAt === 'string') l.createdAt = new Date(l.createdAt);
+                        if (typeof l.updatedAt === 'string') l.updatedAt = new Date(l.updatedAt);
+
                         // Update modelId
-                        if (l.modelId && modelIdMap.has(l.modelId)) {
-                            l.modelId = modelIdMap.get(l.modelId);
+                        if (l.modelId !== undefined) {
+                            if (modelIdMap.has(l.modelId)) {
+                                l.modelId = modelIdMap.get(l.modelId);
+                            } else {
+                                // If model ID is not found in map (meaning it wasn't in imported models or pre-existing),
+                                // we should probably strip it or set to undefined effectively, to avoid pointing to a wrong integer.
+                                // Dexie won't crash on foreign key usually, but app logic might look up model by ID and fail.
+                                l.modelId = undefined;
+                            }
                         }
+
                         // Add log
                         const newId = await db.logs.add(l);
                         logIdMap.set(oldId, newId as number);
                     }
 
-                    for (const c of data.comments) {
-                        delete c.id;
-                        if (c.logId && logIdMap.has(c.logId)) {
-                            c.logId = logIdMap.get(c.logId);
-                            await db.comments.add(c);
+                    if (data.comments) {
+                        for (const c of data.comments) {
+                            delete c.id;
+
+                            // Hydrate dates
+                            if (typeof c.createdAt === 'string') c.createdAt = new Date(c.createdAt);
+                            if (typeof c.updatedAt === 'string') c.updatedAt = new Date(c.updatedAt);
+
+                            if (c.logId && logIdMap.has(c.logId)) {
+                                c.logId = logIdMap.get(c.logId);
+                                await db.comments.add(c);
+                            }
                         }
                     }
                 });
