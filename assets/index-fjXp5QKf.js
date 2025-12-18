@@ -892,6 +892,8 @@ Error generating stack: `+se.message+`
   padding: 2rem;
   max-width: 800px;
   margin: 0 auto;
+  height: 100%;
+  overflow-y: auto;
 `,l3=Bn.div`
   margin-bottom: 3rem;
 `,u3=Bn.h2`
