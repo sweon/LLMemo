@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../db';
 import { Link, useNavigate, useParams } from 'react-router-dom'; // Ensure react-router-dom is installed
-import { FiPlus, FiSettings, FiSun, FiMoon, FiSearch } from 'react-icons/fi';
+import { FiPlus, FiSettings, FiSun, FiMoon, FiSearch, FiX } from 'react-icons/fi';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useSearch } from '../../contexts/SearchContext';
 import { format } from 'date-fns';
@@ -34,7 +34,7 @@ const SearchIcon = styled(FiSearch)`
 
 const SearchInput = styled.input`
   width: 100%;
-  padding: 0.5rem 0.5rem 0.5rem 2rem;
+  padding: 0.5rem 2rem 0.5rem 2rem;
   border-radius: 6px;
   border: 1px solid ${({ theme }) => theme.colors.border};
   background: ${({ theme }) => theme.colors.background};
@@ -43,6 +43,27 @@ const SearchInput = styled.input`
   &:focus {
     outline: none;
     border-color: ${({ theme }) => theme.colors.primary};
+  }
+`;
+
+const ClearButton = styled.button`
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: ${({ theme }) => theme.colors.textSecondary};
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 50%;
+
+  &:hover {
+    color: ${({ theme }) => theme.colors.text};
+    background-color: ${({ theme }) => theme.colors.surface};
   }
 `;
 
@@ -195,6 +216,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
+          {searchQuery && (
+            <ClearButton onClick={() => setSearchQuery('')}>
+              <FiX size={14} />
+            </ClearButton>
+          )}
         </SearchInputWrapper>
         <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
           <select
