@@ -94,13 +94,15 @@ a=extmap-allow-mixed`)!==-1){const s=o.sdp.split(`
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(0, 0, 0, 0.7);
+    background-color: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(5px);
     display: flex;
     justify-content: center;
     align-items: center;
     z-index: 1000;
 `,mC=mn.div`
     background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
     border-radius: 12px;
     width: 450px;
     max-width: 90%;
@@ -124,16 +126,22 @@ a=extmap-allow-mixed`)!==-1){const s=o.sdp.split(`
 `,vC=mn.div`
     display: flex;
     background-color: var(--bg-tertiary);
+    border-bottom: 1px solid var(--border-color);
 `,N4=mn.button`
     flex: 1;
     padding: 16px;
     background: ${e=>e.$active?"var(--bg-secondary)":"transparent"};
     border: none;
+    border-right: 1px solid var(--border-color);
     border-bottom: 2px solid ${e=>e.$active?"var(--primary-color)":"transparent"};
     color: ${e=>e.$active?"var(--primary-color)":"var(--text-secondary)"};
     font-weight: 500;
     cursor: pointer;
     transition: all 0.2s;
+
+    &:last-child {
+        border-right: none;
+    }
 
     &:hover {
         background: var(--bg-secondary);
