@@ -28,13 +28,16 @@ const Overlay = styled.div`
 
 const ModalContainer = styled.div`
     background-color: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    width: 450px;
+    border: 1px solid transparent;
+    border-radius: 16px;
+    width: 480px;
     max-width: 90%;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
     color: var(--text-primary);
     overflow: hidden;
+    background-image: linear-gradient(var(--bg-secondary), var(--bg-secondary)), linear-gradient(to right, #6a11cb, #2575fc);
+    background-origin: border-box;
+    background-clip: content-box, border-box;
 `;
 
 const Header = styled.div`
@@ -42,8 +45,9 @@ const Header = styled.div`
     justify-content: space-between;
     align-items: center;
     padding: 24px;
-    border-bottom: 2px solid var(--border-color);
-    background-color: var(--bg-tertiary);
+    /* border-bottom: 2px solid var(--border-color); */
+    background: linear-gradient(135deg, rgba(81, 79, 240, 0.1) 0%, rgba(37, 117, 252, 0.1) 100%);
+    border-bottom: 1px solid rgba(81, 79, 240, 0.2);
 
     h2 {
         margin: 0;
@@ -164,12 +168,18 @@ const Button = styled.button<{ $variant?: 'primary' | 'secondary'; $fullWidth?: 
     cursor: pointer;
     font-weight: 500;
     transition: background-color 0.2s;
-    background-color: ${props => props.$variant === 'secondary' ? 'var(--bg-tertiary)' : 'var(--primary-color)'};
+    transition: all 0.2s;
+    background: ${props => props.$variant === 'secondary'
+        ? 'var(--bg-tertiary)'
+        : 'linear-gradient(90deg, #6a11cb 0%, #2575fc 100%)'};
     color: ${props => props.$variant === 'secondary' ? 'var(--text-primary)' : '#fff'};
     width: ${props => props.$fullWidth ? '100%' : 'auto'};
+    box-shadow: ${props => props.$variant !== 'secondary' ? '0 4px 15px rgba(37, 117, 252, 0.3)' : 'none'};
 
     &:hover {
-        opacity: 0.9;
+        opacity: 0.95;
+        transform: translateY(-1px);
+        box-shadow: ${props => props.$variant !== 'secondary' ? '0 6px 20px rgba(37, 117, 252, 0.4)' : 'none'};
     }
     
     &:disabled {
