@@ -169,7 +169,7 @@ const IconButton = styled.button`
     }
 `;
 
-const Button = styled.button<{ $variant?: 'primary' | 'secondary'; $fullWidth?: boolean }>`
+const Button = styled.button<{ $variant?: 'primary' | 'secondary' | 'host' | 'join'; $fullWidth?: boolean }>`
     padding: 12px 16px;
     border-radius: 6px;
     border: none;
