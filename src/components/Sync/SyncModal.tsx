@@ -368,7 +368,12 @@ export const SyncModal: React.FC<SyncModalProps> = ({ isOpen, onClose }) => {
             syncService.current = new SyncService({
                 onStatusChange: handleStatusChange,
                 onDataReceived: () => {
-                    window.location.reload();
+                    // Show completion message for a bit before reloading
+                    setStatus('completed');
+                    setStatusMessage('Data synced! Reloading in 3 seconds...');
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 3000);
                 }
             });
         }
