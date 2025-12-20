@@ -429,8 +429,8 @@ a=extmap-allow-mixed`)!==-1){const u=o.sdp.split(`
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  padding: 0.5rem 0.75rem;
+  gap: 0.25rem;
+  padding: 0.5rem 0.5rem;
   border-radius: 6px;
   border: none;
   cursor: pointer;
