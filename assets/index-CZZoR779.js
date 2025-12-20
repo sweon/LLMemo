@@ -379,11 +379,11 @@ a=extmap-allow-mixed`)!==-1){const u=o.sdp.split(`
     animation: spin 1s linear infinite;
   }
 `,Hk=Nn.div`
-  padding: 1rem;
+  padding: 0.75rem 1rem;
   border-bottom: 1px solid ${({theme:e})=>e.colors.border};
 `,Uk=Nn.div`
   position: relative;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
 `,Gk=Nn(PE)`
   position: absolute;
   left: 10px;
@@ -443,16 +443,16 @@ a=extmap-allow-mixed`)!==-1){const u=o.sdp.split(`
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
 `,jk=Nn.div`
   flex: 1;
   overflow-y: auto;
   padding: 0.5rem;
 `,Zk=Nn($2)`
   display: block;
-  padding: 0.75rem;
+  padding: 0.5rem 0.75rem;
   border-radius: 6px;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.125rem;
   text-decoration: none;
   background: ${({$isActive:e,theme:t})=>e?t.colors.border:"transparent"};
   color: ${({theme:e})=>e.colors.text}; // Ensure text color is set explicitly
@@ -469,7 +469,7 @@ a=extmap-allow-mixed`)!==-1){const u=o.sdp.split(`
 `,Kk=Nn.div`
   font-size: 0.75rem;
   color: ${({theme:e})=>e.colors.textSecondary};
-  margin-top: 0.25rem;
+  margin-top: 0.1rem;
 `,X1=Nn.button`
   background: transparent;
   border: none;
