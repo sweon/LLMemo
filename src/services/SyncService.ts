@@ -29,17 +29,19 @@ export class SyncService {
     public async initialize(roomId: string): Promise<string> {
         this.isHost = true;
         this.options.onStatusChange('connecting', 'Starting PeerJS server...');
-        return new Promise((resolve, reject) => {
-            if (this.peer) {
-                this.peer.destroy();
-            }
+        if (this.peer) {
+            this.peer.destroy();
+            await new Promise(r => setTimeout(r, 500));
+        }
 
-            // Clean the ID to be safe for PeerJS
+        return new Promise(async (resolve, reject) => {
             const cleanId = cleanRoomId(roomId);
 
             // Highly optimized PeerJS config for stability
             this.peer = new Peer(cleanId, {
-                debug: 1, // Re-enabled for troubleshooting on mobile
+                debug: 2,
+                secure: true,
+                pingInterval: 3000, // Faster ping to prevent socket timeout
                 config: {
                     'iceServers': [
                         { urls: 'stun:stun.l.google.com:19302' },
@@ -58,7 +60,8 @@ export class SyncService {
                 this.handleConnection(conn);
             });
 
-            this.peer.on('error', (err) => {
+            this.peer.on('error', (err: any) => {
+                console.error('PeerJS Error:', err.type, err);
                 let message = err.message;
                 if (err.type === 'unavailable-id') {
                     message = 'This Room ID is already in use. Please try a different one.';
@@ -66,6 +69,10 @@ export class SyncService {
                     message = 'Network error. Please check your connection.';
                 } else if (err.type === 'browser-incompatible') {
                     message = 'Your browser does not support WebRTC sync.';
+                } else if (err.type === 'server-error') {
+                    message = 'Signaling server error. Please try again later.';
+                } else if (err.type === 'socket-error') {
+                    message = 'Connection to signaling server failed.';
                 }
 
                 this.options.onStatusChange('error', message);
@@ -73,8 +80,12 @@ export class SyncService {
             });
 
             this.peer.on('disconnected', () => {
-                console.log('Peer disconnected from server, attempting reconnect...');
-                this.peer?.reconnect();
+                console.log('Peer disconnected from server, attempting reconnect in 2s...');
+                setTimeout(() => {
+                    if (this.peer && !this.peer.destroyed) {
+                        this.peer.reconnect();
+                    }
+                }, 2000);
             });
         });
     }
@@ -84,7 +95,8 @@ export class SyncService {
         if (!this.peer) {
             // If connecting as client without hosting, we need a random ID
             this.peer = new Peer({
-                debug: 1,
+                debug: 2,
+                secure: true,
                 config: {
                     'iceServers': [
                         { urls: 'stun:stun.l.google.com:19302' },
