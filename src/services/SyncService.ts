@@ -45,17 +45,14 @@ export class SyncService {
             const cleanId = cleanRoomId(roomId);
 
             this.peer = new Peer(cleanId, {
-                debug: 1,
+                debug: 2,
                 secure: true,
-                pingInterval: 10000,
+                pingInterval: 5000,
                 config: {
                     'iceServers': [
                         { urls: 'stun:stun.l.google.com:19302' },
-                        { urls: 'stun:stun1.l.google.com:19302' },
-                        { urls: 'stun:stun2.l.google.com:19302' },
                         { urls: 'stun:global.stun.twilio.com:3478' }
-                    ],
-                    'sdpSemantics': 'unified-plan'
+                    ]
                 }
             });
 
@@ -125,13 +122,12 @@ export class SyncService {
             this.isInitializing = true;
             this.options.onStatusChange('connecting', 'Initializing client...');
             this.peer = new Peer({
-                debug: 1,
+                debug: 2,
                 secure: true,
-                pingInterval: 10000,
+                pingInterval: 5000,
                 config: {
                     'iceServers': [
                         { urls: 'stun:stun.l.google.com:19302' },
-                        { urls: 'stun:stun1.l.google.com:19302' },
                         { urls: 'stun:global.stun.twilio.com:3478' }
                     ]
                 }
@@ -157,10 +153,7 @@ export class SyncService {
         this.options.onStatusChange('connecting', `Dialing ${targetPeerId}...`);
         if (!this.peer) return;
 
-        const conn = this.peer.connect(targetPeerId, {
-            reliable: true,
-            serialization: 'json'
-        });
+        const conn = this.peer.connect(targetPeerId, { reliable: true });
         this.handleConnection(conn);
     }
 
