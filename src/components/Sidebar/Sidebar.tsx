@@ -83,28 +83,32 @@ const ClearButton = styled.button`
   }
 `;
 
-const ActionRow = styled.div`
-  display: flex;
-  gap: 0.5rem;
-`;
 
 const Button = styled.button`
-  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  padding: 0.5rem;
+  padding: 0.5rem 1rem;
   border-radius: 6px;
   border: none;
   cursor: pointer;
   background: ${({ theme }) => theme.colors.primary};
   color: white;
   font-weight: 500;
+  white-space: nowrap;
 
   &:hover {
     background: ${({ theme }) => theme.colors.primaryHover};
   }
+`;
+
+const TopActions = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
 `;
 
 const LogList = styled.div`
@@ -141,13 +145,6 @@ const LogDate = styled.div`
   margin-top: 0.25rem;
 `;
 
-const Footer = styled.div`
-  padding: 1rem;
-  border-top: 1px solid ${({ theme }) => theme.colors.border};
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-`;
 
 const IconButton = styled.button`
   background: transparent;
@@ -155,7 +152,7 @@ const IconButton = styled.button`
   color: ${({ theme }) => theme.colors.textSecondary};
   cursor: pointer;
   padding: 0.5rem;
-  border-radius: 50%;
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -261,6 +258,55 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
   return (
     <SidebarContainer>
       <Header>
+        <TopActions>
+          <Button onClick={() => {
+            navigate('/new');
+            onCloseMobile();
+          }}>
+            <FiPlus /> New
+          </Button>
+          <div style={{ display: 'flex', gap: '0.25rem' }}>
+            <Tooltip content="Sync Data">
+              <IconButton onClick={() => setIsSyncModalOpen(true)}>
+                <FiRefreshCw size={18} />
+              </IconButton>
+            </Tooltip>
+
+            <Tooltip content={needRefresh ? "Install Update" : "Check for Updates"}>
+              <IconButton
+                onClick={handleUpdateCheck}
+                style={{ position: 'relative' }}
+              >
+                <FiArrowUpCircle size={18} className={isCheckingUpdate ? 'spin' : ''} />
+                {needRefresh && (
+                  <span style={{
+                    position: 'absolute',
+                    top: '4px',
+                    right: '4px',
+                    width: '8px',
+                    height: '8px',
+                    borderRadius: '50%',
+                    backgroundColor: '#ef4444',
+                    border: '1px solid white'
+                  }} />
+                )}
+              </IconButton>
+            </Tooltip>
+
+            <Tooltip content={mode === 'light' ? "Switch to Dark Mode" : "Switch to Light Mode"}>
+              <IconButton onClick={toggleTheme}>
+                {mode === 'light' ? <FiMoon size={18} /> : <FiSun size={18} />}
+              </IconButton>
+            </Tooltip>
+
+            <Tooltip content="Settings">
+              <IconButton onClick={() => navigate('/settings')}>
+                <FiSettings size={18} />
+              </IconButton>
+            </Tooltip>
+          </div>
+        </TopActions>
+
         <SearchInputWrapper>
           <SearchIcon size={16} />
           <SearchInput
@@ -274,7 +320,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
             </ClearButton>
           )}
         </SearchInputWrapper>
-        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as any)}
@@ -292,14 +338,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
             <option value="model">Model Name</option>
           </select>
         </div>
-        <ActionRow>
-          <Button onClick={() => {
-            navigate('/new');
-            onCloseMobile();
-          }}>
-            <FiPlus /> New Log
-          </Button>
-        </ActionRow>
       </Header>
 
       <LogList>
@@ -323,48 +361,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
         ))}
       </LogList>
 
-      <Footer>
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <Tooltip content="Settings">
-            <IconButton onClick={() => navigate('/settings')}>
-              <FiSettings size={20} />
-            </IconButton>
-          </Tooltip>
-
-          <Tooltip content="Sync Data">
-            <IconButton onClick={() => setIsSyncModalOpen(true)}>
-              <FiRefreshCw size={20} />
-            </IconButton>
-          </Tooltip>
-
-          <Tooltip content={needRefresh ? "Install Update" : "Check for Updates"}>
-            <IconButton
-              onClick={handleUpdateCheck}
-              style={{ position: 'relative' }}
-            >
-              <FiArrowUpCircle size={20} className={isCheckingUpdate ? 'spin' : ''} />
-              {needRefresh && (
-                <span style={{
-                  position: 'absolute',
-                  top: '4px',
-                  right: '4px',
-                  width: '8px',
-                  height: '8px',
-                  borderRadius: '50%',
-                  backgroundColor: '#ef4444', // Red for notification
-                  border: '1px solid white'
-                }} />
-              )}
-            </IconButton>
-          </Tooltip>
-        </div>
-
-        <Tooltip content={mode === 'light' ? "Switch to Dark Mode" : "Switch to Light Mode"}>
-          <IconButton onClick={toggleTheme}>
-            {mode === 'light' ? <FiMoon size={20} /> : <FiSun size={20} />}
-          </IconButton>
-        </Tooltip>
-      </Footer>
       <SyncModal isOpen={isSyncModalOpen} onClose={() => setIsSyncModalOpen(false)} />
     </SidebarContainer>
   );
