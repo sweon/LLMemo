@@ -57,11 +57,11 @@ Please change the parent <Route path="${ne}"> to <Route path="${ne==="/"?"*":`${
   top: ${e=>e.$top}px;
   left: ${e=>e.$left}px;
   transform: translateX(-50%);
-  padding: 6px 10px;
+  padding: 4px 8px;
   background-color: #333; // Dark background
   color: #fff;
   border-radius: 4px;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   white-space: nowrap;
   pointer-events: none;
   z-index: 9999;
