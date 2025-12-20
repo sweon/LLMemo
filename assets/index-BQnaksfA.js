@@ -154,6 +154,9 @@ a=extmap-allow-mixed`)!==-1){const u=o.sdp.split(`
     border-radius: 16px;
     width: 480px;
     max-width: 90%;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
     color: var(--text-primary);
     overflow: hidden;
@@ -205,6 +208,23 @@ a=extmap-allow-mixed`)!==-1){const u=o.sdp.split(`
     }
 `,TT=Nn.div`
     padding: 24px;
+    overflow-y: auto;
+    flex: 1;
+
+    /* Custom scrollbar */
+    &::-webkit-scrollbar {
+        width: 6px;
+    }
+    &::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    &::-webkit-scrollbar-thumb {
+        background: var(--border-color);
+        border-radius: 3px;
+    }
+    &::-webkit-scrollbar-thumb:hover {
+        background: var(--text-secondary);
+    }
 `,kT=Nn.button`
     background: none;
     border: none;
