@@ -310,18 +310,10 @@ export const SyncModal: React.FC<SyncModalProps> = ({ isOpen, onClose }) => {
             if (!roomId) {
                 const newId = generateShortId();
                 setRoomId(newId);
-                // Trigger hosting automatically with the new ID
-                if (activeTab === 'host') {
-                    const svc = getService();
-                    svc.initialize(newId).catch(console.error);
-                }
-            } else if (activeTab === 'host' && status === 'disconnected') {
-                // Trigger hosting if ID exists but not hosting yet
-                const svc = getService();
-                svc.initialize(roomId).catch(console.error);
+                // We no longer auto-host here to give the user manual control
             }
         }
-    }, [isOpen, activeTab]);
+    }, [isOpen]);
 
     useEffect(() => {
         // Handle scanner lifecycle
@@ -486,6 +478,16 @@ export const SyncModal: React.FC<SyncModalProps> = ({ isOpen, onClose }) => {
                                 </IconButton>
                             </InputGroup>
 
+                            <Button
+                                $fullWidth
+                                $variant="host"
+                                onClick={() => startHosting()}
+                                disabled={status === 'syncing' || status === 'connected'}
+                                style={{ marginBottom: '20px' }}
+                            >
+                                {status === 'ready' ? 'Restart Hosting' : 'Start Hosting'}
+                            </Button>
+
                             {(status === 'ready' || status === 'connected' || status === 'connecting' || status === 'syncing') && (
                                 <div style={{ textAlign: 'center' }}>
                                     <QRContainer>
@@ -497,17 +499,6 @@ export const SyncModal: React.FC<SyncModalProps> = ({ isOpen, onClose }) => {
                                             : 'Scan this code on the other device to sync'}
                                     </p>
                                 </div>
-                            )}
-
-                            {status === 'disconnected' && (
-                                <Button
-                                    $fullWidth
-                                    $variant="host"
-                                    onClick={() => startHosting()}
-                                    style={{ marginBottom: '20px' }}
-                                >
-                                    Start Hosting
-                                </Button>
                             )}
                         </>
                     ) : (
