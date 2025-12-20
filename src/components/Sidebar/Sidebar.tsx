@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../db';
 import { Link, useNavigate, useParams } from 'react-router-dom'; // Ensure react-router-dom is installed
-import { FiPlus, FiSettings, FiSun, FiMoon, FiSearch, FiX, FiRefreshCw, FiDownload } from 'react-icons/fi';
+import { FiPlus, FiSettings, FiSun, FiMoon, FiSearch, FiX, FiRefreshCw, FiArrowUpCircle } from 'react-icons/fi';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 import { SyncModal } from '../Sync/SyncModal';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -335,7 +335,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
             title={needRefresh ? "New Version Available - Click to Install" : "Check for Updates"}
             style={{ position: 'relative' }}
           >
-            <FiDownload size={20} className={isCheckingUpdate ? 'spin' : ''} />
+            <FiArrowUpCircle size={20} className={isCheckingUpdate ? 'spin' : ''} />
             {needRefresh && (
               <span style={{
                 position: 'absolute',
