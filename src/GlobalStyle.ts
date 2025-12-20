@@ -1,6 +1,10 @@
 import { createGlobalStyle } from 'styled-components';
 
 export const GlobalStyle = createGlobalStyle`
+  html {
+    font-size: ${({ theme }) => theme.fontSize}px;
+  }
+
   body {
     margin: 0;
     padding: 0;

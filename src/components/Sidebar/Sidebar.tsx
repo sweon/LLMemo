@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../db';
 import { Link, useNavigate, useParams } from 'react-router-dom'; // Ensure react-router-dom is installed
-import { FiPlus, FiSettings, FiSun, FiMoon, FiSearch, FiX, FiRefreshCw, FiArrowUpCircle } from 'react-icons/fi';
+import { FiPlus, FiMinus, FiSettings, FiSun, FiMoon, FiSearch, FiX, FiRefreshCw, FiArrowUpCircle } from 'react-icons/fi';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 import { Tooltip } from '../UI/Tooltip';
 import { SyncModal } from '../Sync/SyncModal';
@@ -170,7 +170,7 @@ interface SidebarProps {
 export const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
   const { searchQuery, setSearchQuery } = useSearch();
   const [sortBy, setSortBy] = useState<'date-desc' | 'date-asc' | 'model'>('date-desc');
-  const { mode, toggleTheme } = useTheme();
+  const { mode, toggleTheme, increaseFontSize, decreaseFontSize } = useTheme();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
@@ -265,7 +265,18 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
           }}>
             <FiPlus /> New
           </Button>
-          <div style={{ display: 'flex', gap: '0.25rem' }}>
+          <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center' }}>
+            <Tooltip content="Decrease Font Size">
+              <IconButton onClick={decreaseFontSize}>
+                <FiMinus size={16} />
+              </IconButton>
+            </Tooltip>
+            <Tooltip content="Increase Font Size">
+              <IconButton onClick={increaseFontSize}>
+                <FiPlus size={16} />
+              </IconButton>
+            </Tooltip>
+
             <Tooltip content="Sync Data">
               <IconButton onClick={() => setIsSyncModalOpen(true)}>
                 <FiRefreshCw size={18} />

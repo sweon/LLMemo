@@ -2,6 +2,7 @@ import 'styled-components';
 
 declare module 'styled-components' {
     export interface DefaultTheme {
+        fontSize: number;
         colors: {
             background: string;
             surface: string;

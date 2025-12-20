@@ -10,6 +10,9 @@ type ThemeMode = 'light' | 'dark';
 interface ThemeContextType {
     mode: ThemeMode;
     toggleTheme: () => void;
+    fontSize: number;
+    increaseFontSize: () => void;
+    decreaseFontSize: () => void;
     theme: DefaultTheme;
 }
 
@@ -29,18 +32,38 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         return (saved as ThemeMode) || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
     });
 
+    const [fontSize, setFontSize] = useState<number>(() => {
+        const saved = localStorage.getItem('fontSize');
+        return saved ? Number(saved) : 16;
+    });
+
     useEffect(() => {
         localStorage.setItem('theme', mode);
     }, [mode]);
+
+    useEffect(() => {
+        localStorage.setItem('fontSize', fontSize.toString());
+    }, [fontSize]);
 
     const toggleTheme = () => {
         setMode((prev) => (prev === 'light' ? 'dark' : 'light'));
     };
 
-    const currentTheme = mode === 'light' ? lightTheme : darkTheme;
+    const increaseFontSize = () => {
+        setFontSize(prev => Math.min(prev + 1, 24));
+    };
+
+    const decreaseFontSize = () => {
+        setFontSize(prev => Math.max(prev - 1, 12));
+    };
+
+    const currentTheme = {
+        ...(mode === 'light' ? lightTheme : darkTheme),
+        fontSize
+    };
 
     return (
-        <ThemeContext.Provider value={{ mode, toggleTheme, theme: currentTheme }}>
+        <ThemeContext.Provider value={{ mode, toggleTheme, fontSize, increaseFontSize, decreaseFontSize, theme: currentTheme }}>
             <StyledThemeProvider theme={currentTheme}>
                 <GlobalStyle />
                 {children}
