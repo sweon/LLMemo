@@ -287,10 +287,20 @@ export const SyncModal: React.FC<SyncModalProps> = ({ isOpen, onClose }) => {
         if (isOpen) {
             // Auto generate ID if empty
             if (!roomId) {
-                setRoomId(generateShortId());
+                const newId = generateShortId();
+                setRoomId(newId);
+                // Trigger hosting automatically with the new ID
+                if (activeTab === 'host') {
+                    const svc = getService();
+                    svc.initialize(newId).catch(console.error);
+                }
+            } else if (activeTab === 'host' && status === 'disconnected') {
+                // Trigger hosting if ID exists but not hosting yet
+                const svc = getService();
+                svc.initialize(roomId).catch(console.error);
             }
         }
-    }, [isOpen]);
+    }, [isOpen, activeTab]);
 
     useEffect(() => {
         // Handle scanner lifecycle
@@ -427,30 +437,37 @@ export const SyncModal: React.FC<SyncModalProps> = ({ isOpen, onClose }) => {
                                 <Input
                                     value={roomId}
                                     onChange={e => setRoomId(e.target.value)}
-                                    disabled={status === 'connected'}
+                                    disabled={status === 'connected' || status === 'connecting' || status === 'syncing'}
                                     placeholder="Enter your custom ID"
                                 />
                                 <IconButton onClick={copyToClipboard} title="Copy ID">
                                     <FaRegCopy />
                                 </IconButton>
-                                <IconButton onClick={regenerateId} disabled={status === 'connected'} title="Regenerate ID">
+                                <IconButton onClick={regenerateId} disabled={status === 'syncing'} title="Regenerate ID">
                                     <FaRedo />
                                 </IconButton>
                             </InputGroup>
-                            <Button
-                                $fullWidth
-                                $variant="host"
-                                onClick={startHosting}
-                                disabled={status === 'connected' || status === 'syncing'}
-                                style={{ marginBottom: '20px' }}
-                            >
-                                {status === 'connected' ? 'Hosting...' : 'Start Hosting'}
-                            </Button>
 
-                            {status === 'connected' && (
-                                <QRContainer>
-                                    <QRCodeSVG value={cleanRoomId(roomId)} size={200} level="H" />
-                                </QRContainer>
+                            {(status === 'connected' || status === 'connecting' || status === 'syncing') && (
+                                <div style={{ textAlign: 'center' }}>
+                                    <QRContainer>
+                                        <QRCodeSVG value={cleanRoomId(roomId)} size={200} level="H" />
+                                    </QRContainer>
+                                    <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '-10px' }}>
+                                        Scan this code on the other device to sync
+                                    </p>
+                                </div>
+                            )}
+
+                            {status === 'disconnected' && (
+                                <Button
+                                    $fullWidth
+                                    $variant="host"
+                                    onClick={startHosting}
+                                    style={{ marginBottom: '20px' }}
+                                >
+                                    Start Hosting
+                                </Button>
                             )}
                         </>
                     ) : (
