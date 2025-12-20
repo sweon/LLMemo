@@ -178,7 +178,7 @@ export const LogDetail: React.FC = () => {
         }
     };
 
-    const currentModelName = models?.find(m => m.id === modelId)?.name || 'Unknown Log';
+    const currentModelName = models?.find(m => m.id === modelId)?.name || 'Unknown';
 
     if (!isNew && !log) return <Container>Loading...</Container>;
 

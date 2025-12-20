@@ -325,7 +325,6 @@ export const SyncModal: React.FC<SyncModalProps> = ({ isOpen, onClose }) => {
             );
 
             scanner.render((decodedText) => {
-                console.log('Scanned text:', decodedText);
                 setTargetRoomId(decodedText);
                 connectToPeer(decodedText);
             }, () => {

@@ -38,7 +38,7 @@ export class SyncService {
 
             // Highly optimized PeerJS config for stability
             this.peer = new Peer(cleanId, {
-                debug: 1, // Minimize logs but keep errors
+                debug: 0, // Disable debug logs
                 config: {
                     'iceServers': [
                         { urls: 'stun:stun.l.google.com:19302' },
@@ -54,7 +54,6 @@ export class SyncService {
             });
 
             this.peer.on('connection', (conn) => {
-                console.log('Incoming connection from', conn.peer);
                 this.handleConnection(conn);
             });
 
@@ -76,7 +75,7 @@ export class SyncService {
         if (!this.peer) {
             // If connecting as client without hosting, we need a random ID
             this.peer = new Peer({
-                debug: 1,
+                debug: 0,
                 config: {
                     'iceServers': [
                         { urls: 'stun:stun.l.google.com:19302' },
@@ -156,16 +155,12 @@ export class SyncService {
                         this.options.onDataReceived();
                     }, 1000);
                 } catch (err: any) {
-                    console.error('Merge Error:', err);
                     this.options.onStatusChange('error', `Merge Failed: ${err.message}`);
                 }
-            } else {
-                console.warn('Received unknown data type:', data);
             }
         });
 
         conn.on('close', () => {
-            console.log('Connection closed');
             this.stopHeartbeat();
             if (this.conn) {
                 this.options.onStatusChange('disconnected', 'Connection Closed');
@@ -219,7 +214,6 @@ export class SyncService {
                 const logCount = data.logs.length;
                 this.options.onStatusChange('syncing', `Sending ${logCount} logs to peer...`);
                 this.conn.send(data);
-                console.log(`Sent ${logCount} logs to peer`);
             }
         } catch (err: any) {
             console.error('Send Error:', err);
