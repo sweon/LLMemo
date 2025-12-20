@@ -34,6 +34,9 @@ const ModalContainer = styled.div`
     border-radius: 16px;
     width: 480px;
     max-width: 90%;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
     color: var(--text-primary);
     overflow: hidden;
@@ -101,6 +104,23 @@ const Tab = styled.button<{ $active: boolean; $type: 'host' | 'join' }>`
 
 const Content = styled.div`
     padding: 24px;
+    overflow-y: auto;
+    flex: 1;
+
+    /* Custom scrollbar */
+    &::-webkit-scrollbar {
+        width: 6px;
+    }
+    &::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    &::-webkit-scrollbar-thumb {
+        background: var(--border-color);
+        border-radius: 3px;
+    }
+    &::-webkit-scrollbar-thumb:hover {
+        background: var(--text-secondary);
+    }
 `;
 
 const CloseButton = styled.button`
