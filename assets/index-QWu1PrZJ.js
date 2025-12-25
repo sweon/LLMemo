@@ -217,10 +217,10 @@ a=extmap-allow-mixed`)!==-1){const l=i.sdp.split(`
     display: flex;
     flex-direction: column;
     width: 100%;
+    margin: 0 auto;
 
     @media (max-width: 480px) {
-        max-width: 320px;
-        margin: 0 auto;
+        max-width: 300px;
     }
 `,BI=Mn.button`
     background: none;
@@ -251,6 +251,7 @@ a=extmap-allow-mixed`)!==-1){const l=i.sdp.split(`
     display: flex;
     gap: 8px;
     margin-bottom: 20px;
+    width: 100%;
 `,B3=Mn.input`
     flex: 1;
     padding: 12px 16px;
@@ -338,6 +339,7 @@ a=extmap-allow-mixed`)!==-1){const l=i.sdp.split(`
     justify-content: center;
     gap: 10px;
     font-size: 0.9rem;
+    width: 100%;
     
     color: ${e=>e.$status==="error"?e.theme.colors.danger:e.$status==="completed"?e.theme.colors.success:e.$status==="ready"||e.$status==="connected"?e.theme.colors.primary:e.$status==="connecting"?"#f59e0b":e.theme.colors.textSecondary};
     
@@ -362,7 +364,7 @@ a=extmap-allow-mixed`)!==-1){const l=i.sdp.split(`
     border: 2px solid ${({theme:e})=>e.colors.border};
     background: #000;
     position: relative;
-    
+
     #reader {
         width: 100% !important;
         border: none !important;
