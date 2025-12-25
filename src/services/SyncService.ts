@@ -20,24 +20,10 @@ export class SyncService {
     private lastPong: number = 0;
     private isHost: boolean = false;
     private isInitiator: boolean = false;
-    private connectionTimeout: any = null;
 
     constructor(options: SyncServiceOptions) {
         this.options = options;
         this.handleConnection = this.handleConnection.bind(this);
-    }
-
-    private getPeerConfig() {
-        return {
-            debug: 2,
-            secure: true,
-            config: {
-                'iceServers': [
-                    { urls: 'stun:stun.l.google.com:19302' },
-                    { urls: 'stun:stun1.l.google.com:19302' }
-                ]
-            }
-        };
     }
 
     public async initialize(roomId: string): Promise<string> {
@@ -49,7 +35,11 @@ export class SyncService {
 
         return new Promise((resolve, reject) => {
             const cleanId = cleanRoomId(roomId);
-            this.peer = new Peer(cleanId, this.getPeerConfig());
+            // Using absolutely standard PeerJS config for maximum compatibility
+            this.peer = new Peer(cleanId, {
+                debug: 2,
+                secure: true
+            });
 
             this.peer.on('open', (id) => {
                 this.options.onStatusChange('ready', `Room ID: ${id}`);
@@ -57,13 +47,12 @@ export class SyncService {
             });
 
             this.peer.on('connection', (conn) => {
-                console.log('New peer connection request');
                 this.handleConnection(conn);
             });
 
             this.peer.on('error', (err: any) => {
-                console.error('Peer error:', err.type);
-                this.options.onStatusChange('error', `Peer Error: ${err.type}`);
+                console.error('Peer Server Error:', err.type);
+                this.options.onStatusChange('error', `Server Error: ${err.type}`);
                 reject(err);
             });
         });
@@ -74,38 +63,32 @@ export class SyncService {
         this.isHost = false;
         this.isInitiator = true;
 
-        this.options.onStatusChange('connecting', 'Initializing client...');
+        this.options.onStatusChange('connecting', 'Initializing link...');
 
-        this.peer = new Peer(this.getPeerConfig());
+        this.peer = new Peer({
+            debug: 2,
+            secure: true
+        });
 
         this.peer.on('open', (id) => {
-            console.log('Client identity ready:', id);
+            console.log('Client registered:', id);
             this.options.onStatusChange('connecting', `Dialing ${targetPeerId}...`);
-
-            // Small delay to ensure the signaling server has registered our new ID
-            setTimeout(() => {
-                this._connect(cleanRoomId(targetPeerId));
-            }, 500);
+            this._connect(cleanRoomId(targetPeerId));
         });
 
         this.peer.on('error', (err: any) => {
-            console.error('Client Error:', err.type);
-            this.options.onStatusChange('error', `Connection failed: ${err.type}`);
+            console.error('Peer Client Error:', err.type);
+            this.options.onStatusChange('error', `Connection Error: ${err.type}`);
         });
     }
 
     private _connect(targetPeerId: string) {
         if (!this.peer || this.peer.destroyed) return;
 
-        if (this.connectionTimeout) clearTimeout(this.connectionTimeout);
-        this.connectionTimeout = setTimeout(() => {
-            if (this.conn && !this.conn.open) {
-                this.options.onStatusChange('error', 'Connection timed out. Please retry.');
-            }
-        }, 20000); // 20 seconds timeout for mobile networks
-
+        // Key fix: Use standard PeerJS options (no 'reliable' label which causes hangs)
+        // Explicitly set serialization to 'json' for cross-platform stability
         const conn = this.peer.connect(targetPeerId, {
-            reliable: true
+            serialization: 'json'
         });
         this.handleConnection(conn);
     }
@@ -117,19 +100,14 @@ export class SyncService {
         this.conn = conn;
 
         conn.on('open', () => {
-            if (this.connectionTimeout) {
-                clearTimeout(this.connectionTimeout);
-                this.connectionTimeout = null;
-            }
-
-            console.log('Stable connection with:', conn.peer);
+            console.log('Data channel fully open with:', conn.peer);
             this.options.onStatusChange('connected', 'Linked!');
             this.lastPong = Date.now();
             this.startHeartbeat();
 
             if (this.isInitiator) {
-                this.options.onStatusChange('syncing', 'Uploading data...');
-                setTimeout(() => this.syncData(), 1000);
+                this.options.onStatusChange('syncing', 'Syncing...');
+                setTimeout(() => this.syncData(), 800);
             }
         });
 
@@ -145,7 +123,7 @@ export class SyncService {
 
             if (data && data.logs && data.models) {
                 const count = data.logs.length;
-                this.options.onStatusChange('syncing', `Syncing ${count} logs...`);
+                this.options.onStatusChange('syncing', `Merging ${count} logs...`);
 
                 try {
                     await mergeBackupData(data);
@@ -154,18 +132,17 @@ export class SyncService {
                         this.options.onStatusChange('syncing', 'Updating peer...');
                         setTimeout(() => this.syncData(), 500);
                     } else {
-                        this.options.onStatusChange('completed', 'Sync Successful!');
+                        this.options.onStatusChange('completed', 'Sync Completed!');
                         this.options.onDataReceived();
                     }
                 } catch (err: any) {
-                    this.options.onStatusChange('error', `Sync failed: ${err.message}`);
+                    this.options.onStatusChange('error', `Merge error: ${err.message}`);
                 }
             }
         });
 
         conn.on('close', () => {
             this.stopHeartbeat();
-            if (this.connectionTimeout) clearTimeout(this.connectionTimeout);
             if (this.conn === conn) {
                 this.options.onStatusChange('disconnected', 'Disconnected');
                 this.conn = null;
@@ -173,8 +150,7 @@ export class SyncService {
         });
 
         conn.on('error', (err) => {
-            console.error('Connection error:', err);
-            if (this.connectionTimeout) clearTimeout(this.connectionTimeout);
+            console.error('Data Session Error:', err);
             this.options.onStatusChange('error', 'Connection failed');
         });
     }
@@ -207,16 +183,12 @@ export class SyncService {
                 this.conn.send(data);
             }
         } catch (err) {
-            this.options.onStatusChange('error', 'Data sync failed');
+            this.options.onStatusChange('error', 'Sync data failed');
         }
     }
 
     public destroy() {
         this.stopHeartbeat();
-        if (this.connectionTimeout) {
-            clearTimeout(this.connectionTimeout);
-            this.connectionTimeout = null;
-        }
         if (this.conn) {
             this.conn.close();
             this.conn = null;
