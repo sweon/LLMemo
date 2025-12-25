@@ -113,7 +113,12 @@ export class SyncService {
             this.startHeartbeat();
 
             // Automatic data exchange on connection
-            this.syncData();
+            // Adding a small delay to ensure the data channel is fully ready for transfer
+            setTimeout(() => {
+                if (this.conn && this.conn.open) {
+                    this.syncData();
+                }
+            }, 500);
         });
 
         conn.on('data', async (data: any) => {
