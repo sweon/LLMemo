@@ -98,6 +98,10 @@ const Content = styled.div`
     padding: 8px 24px 24px;
     overflow-y: auto;
     flex: 1;
+
+    @media (max-width: 480px) {
+        padding: 8px 16px 20px;
+    }
 `;
 
 const FormWrapper = styled.div`
@@ -105,6 +109,10 @@ const FormWrapper = styled.div`
     flex-direction: column;
     width: 100%;
     margin: 0 auto;
+
+    @media (max-width: 600px) {
+        max-width: 310px;
+    }
 `;
 
 const CloseButton = styled.button`
@@ -135,12 +143,6 @@ const Label = styled.label`
     text-transform: uppercase;
     letter-spacing: 0.05em;
     width: 100%;
-
-    @media (max-width: 600px) {
-        max-width: 300px;
-        margin-left: auto;
-        margin-right: auto;
-    }
 `;
 
 const InputGroup = styled.div`
@@ -148,12 +150,6 @@ const InputGroup = styled.div`
     gap: 8px;
     margin-bottom: 20px;
     width: 100%;
-
-    @media (max-width: 600px) {
-        max-width: 300px;
-        margin-left: auto;
-        margin-right: auto;
-    }
 `;
 
 const Input = styled.input`
@@ -241,14 +237,6 @@ const ActionButton = styled.button<{ $variant?: 'primary' | 'secondary' | 'dange
         opacity: 0.5;
         cursor: not-allowed;
     }
-
-    @media (max-width: 600px) {
-        ${props => props.$fullWidth && `
-            max-width: 300px;
-            margin-left: auto;
-            margin-right: auto;
-        `}
-    }
 `;
 
 const StatusBox = styled.div<{ $status: SyncStatus }>`
@@ -264,6 +252,7 @@ const StatusBox = styled.div<{ $status: SyncStatus }>`
     gap: 10px;
     font-size: 0.9rem;
     width: 100%;
+    word-break: break-word;
     
     color: ${props => {
         if (props.$status === 'error') return props.theme.colors.danger;
@@ -280,12 +269,6 @@ const StatusBox = styled.div<{ $status: SyncStatus }>`
         if (props.$status === 'connecting') return '#f59e0b40';
         return props.theme.colors.border;
     }};
-
-    @media (max-width: 600px) {
-        max-width: 300px;
-        margin-left: auto;
-        margin-right: auto;
-    }
 `;
 
 const QRWrapper = styled.div`
@@ -356,12 +339,6 @@ const Divider = styled.div`
 
     &::after {
         margin-left: 16px;
-    }
-
-    @media (max-width: 600px) {
-        max-width: 300px;
-        margin-left: auto;
-        margin-right: auto;
     }
 `;
 

@@ -85,10 +85,10 @@ export class SyncService {
     private _connect(targetPeerId: string) {
         if (!this.peer || this.peer.destroyed) return;
 
-        // Key fix: Use standard PeerJS options (no 'reliable' label which causes hangs)
-        // Explicitly set serialization to 'json' for cross-platform stability
+        // Bypassing PeerJS's internal serialize/deserialize logic for 'none'
+        // This avoids the 'Message too big for JSON channel' error entirely
         const conn = this.peer.connect(targetPeerId, {
-            serialization: 'json'
+            serialization: 'none'
         });
         this.handleConnection(conn);
     }
@@ -113,7 +113,16 @@ export class SyncService {
             }
         });
 
-        conn.on('data', async (data: any) => {
+        conn.on('data', async (rawData: any) => {
+            let data: any;
+            try {
+                // Since serialization is 'none', data will be a string
+                data = typeof rawData === 'string' ? JSON.parse(rawData) : rawData;
+            } catch (e) {
+                // If it's not JSON, might be raw ping/pong
+                data = rawData;
+            }
+
             if (data === 'ping') {
                 this.conn?.send('pong');
                 return;
@@ -227,13 +236,14 @@ export class SyncService {
                 const chunk = jsonStr.substring(start, end);
 
                 if (this.conn && this.conn.open) {
-                    this.conn.send({
+                    // Manually stringify the chunk envelope because serialization is 'none'
+                    this.conn.send(JSON.stringify({
                         type: 'chunk',
                         id: syncId,
                         index: i,
                         total: totalChunks,
                         data: chunk
-                    });
+                    }));
                 }
 
                 // Small sleep to prevent overwhelming the data channel buffer
