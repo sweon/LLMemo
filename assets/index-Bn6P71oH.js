@@ -218,10 +218,6 @@ a=extmap-allow-mixed`)!==-1){const l=i.sdp.split(`
     flex-direction: column;
     width: 100%;
     margin: 0 auto;
-
-    @media (max-width: 480px) {
-        max-width: 300px;
-    }
 `,BI=Mn.button`
     background: none;
     border: none;
@@ -247,13 +243,27 @@ a=extmap-allow-mixed`)!==-1){const l=i.sdp.split(`
     font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.05em;
+    width: 100%;
+
+    @media (max-width: 600px) {
+        max-width: 300px;
+        margin-left: auto;
+        margin-right: auto;
+    }
 `,L3=Mn.div`
     display: flex;
     gap: 8px;
     margin-bottom: 20px;
     width: 100%;
+
+    @media (max-width: 600px) {
+        max-width: 300px;
+        margin-left: auto;
+        margin-right: auto;
+    }
 `,B3=Mn.input`
     flex: 1;
+    min-width: 0;
     padding: 12px 16px;
     border-radius: 10px;
     border: 2px solid ${({theme:e})=>e.colors.border};
@@ -276,6 +286,7 @@ a=extmap-allow-mixed`)!==-1){const l=i.sdp.split(`
 `,D2=Mn.button`
     width: 48px;
     height: 48px;
+    flex-shrink: 0;
     border-radius: 10px;
     border: 2px solid ${({theme:e})=>e.colors.border};
     background-color: ${({theme:e})=>e.colors.surface};
@@ -327,6 +338,14 @@ a=extmap-allow-mixed`)!==-1){const l=i.sdp.split(`
         opacity: 0.5;
         cursor: not-allowed;
     }
+
+    @media (max-width: 600px) {
+        ${e=>e.$fullWidth&&`
+            max-width: 300px;
+            margin-left: auto;
+            margin-right: auto;
+        `}
+    }
 `,FI=Mn.div`
     padding: 16px;
     border-radius: 12px;
@@ -344,6 +363,12 @@ a=extmap-allow-mixed`)!==-1){const l=i.sdp.split(`
     color: ${e=>e.$status==="error"?e.theme.colors.danger:e.$status==="completed"?e.theme.colors.success:e.$status==="ready"||e.$status==="connected"?e.theme.colors.primary:e.$status==="connecting"?"#f59e0b":e.theme.colors.textSecondary};
     
     border: 1px solid ${e=>e.$status==="error"?e.theme.colors.danger+"40":e.$status==="completed"?e.theme.colors.success+"40":e.$status==="ready"||e.$status==="connected"?e.theme.colors.primary+"40":e.$status==="connecting"?"#f59e0b40":e.theme.colors.border};
+
+    @media (max-width: 600px) {
+        max-width: 300px;
+        margin-left: auto;
+        margin-right: auto;
+    }
 `,PI=Mn.div`
     background: white;
     padding: 24px;
@@ -394,6 +419,7 @@ a=extmap-allow-mixed`)!==-1){const l=i.sdp.split(`
     font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.1em;
+    width: 100%;
 
     &::before, &::after {
         content: '';
@@ -407,6 +433,12 @@ a=extmap-allow-mixed`)!==-1){const l=i.sdp.split(`
 
     &::after {
         margin-left: 16px;
+    }
+
+    @media (max-width: 600px) {
+        max-width: 300px;
+        margin-left: auto;
+        margin-right: auto;
     }
 `,UI=({isOpen:e,onClose:t})=>{const[n,r]=Je.useState("host"),[i,l]=Je.useState(""),[f,y]=Je.useState(""),[g,m]=Je.useState("disconnected"),[A,E]=Je.useState(""),[N,F]=Je.useState(!1),[V,J]=Je.useState(!1),ne=Je.useRef(null),se=Je.useRef(null),re=pk(),{t:oe}=K1();Je.useEffect(()=>{e&&(i||l(R3()))},[e]),Je.useEffect(()=>{if(N&&!ne.current){const Xe=new MI("reader",{fps:10,qrbox:{width:250,height:250}},!1);Xe.render(tt=>{y(tt),Ke(tt)},()=>{}),ne.current=Xe}return()=>{!N&&ne.current&&(ne.current.clear().catch(Xe=>console.error("Scanner clear error",Xe)),ne.current=null)}},[N]);const xe=()=>{ne.current&&(ne.current.clear().catch(console.error),ne.current=null),se.current&&(se.current.destroy(),se.current=null),m("disconnected"),E(""),F(!1),t()},Me=(Xe,tt)=>{m(Xe),tt&&E(tt)},ve=()=>(se.current||(se.current=new kM({onStatusChange:Me,onDataReceived:()=>{m("completed"),E(oe.sync.data_synced_reload),setTimeout(()=>{window.location.reload()},3e3)}})),se.current),be=async Xe=>{const tt=Xe||i;if(tt.trim())try{await ve().initialize(tt)}catch(kt){console.error(kt)}},Ke=Xe=>{const tt=Xe||f;if(!tt.trim()||g==="connecting"||g==="connected"||g==="syncing")return;ve().connect(tt),N&&F(!1)},_e=()=>{navigator.clipboard.writeText(i),J(!0),setTimeout(()=>J(!1),2e3)},qe=()=>{if(g==="syncing"||g==="connected")return;se.current&&(se.current.destroy(),se.current=null);const Xe=R3();l(Xe),m("disconnected"),E(""),n==="host"&&be(Xe)};return e?$e.jsx(II,{onClick:xe,children:$e.jsxs(_I,{onClick:Xe=>Xe.stopPropagation(),children:[$e.jsxs(RI,{children:[$e.jsxs("h2",{children:[$e.jsx(p3,{})," ",oe.sync.title]}),$e.jsx(BI,{onClick:xe,children:$e.jsx(OM,{})})]}),$e.jsxs(OI,{children:[$e.jsx(O3,{$active:n==="host",onClick:()=>r("host"),disabled:g==="syncing"||g==="connected"&&n==="join",children:oe.sync.host_session}),$e.jsx(O3,{$active:n==="join",onClick:()=>r("join"),disabled:g==="syncing"||g==="connected"&&n==="host",children:oe.sync.join_session})]}),$e.jsx(NI,{children:$e.jsxs(LI,{children:[n==="host"?$e.jsxs($e.Fragment,{children:[$e.jsx(N3,{children:oe.sync.your_room_id}),$e.jsxs(L3,{children:[$e.jsx(B3,{value:i,onChange:Xe=>l(Xe.target.value),disabled:g==="connected"||g==="connecting"||g==="syncing",placeholder:oe.sync.enter_custom_id}),$e.jsx(D2,{onClick:_e,title:V?oe.sync.copied:oe.sync.copy_id,children:V?$e.jsx(d3,{style:{color:re.colors.success}}):$e.jsx(NM,{})}),$e.jsx(D2,{onClick:qe,disabled:g==="syncing"||g==="connected",title:oe.sync.regenerate_id,children:$e.jsx(_M,{})})]}),$e.jsx(k2,{$fullWidth:!0,onClick:()=>be(),disabled:g==="syncing"||g==="connected"||g==="connecting",children:g==="connecting"?oe.sync.connecting:g==="ready"?oe.sync.restart_hosting:oe.sync.start_host}),$e.jsx(PI,{children:$e.jsx(Z7,{value:Vv(i),size:180,level:"H"})}),$e.jsx("p",{style:{fontSize:"0.85rem",color:re.colors.textSecondary,textAlign:"center",marginTop:-8},children:g==="connected"||g==="syncing"?oe.sync.connected_to_peer:oe.sync.scan_hint})]}):$e.jsx($e.Fragment,{children:N?$e.jsxs($e.Fragment,{children:[$e.jsx(zI,{children:$e.jsx("div",{id:"reader"})}),$e.jsxs(k2,{$fullWidth:!0,$variant:"secondary",onClick:()=>F(!1),children:[$e.jsx(RM,{})," ",oe.sync.stop_scanning]})]}):$e.jsxs($e.Fragment,{children:[$e.jsxs(k2,{$fullWidth:!0,onClick:()=>F(!0),disabled:g==="connected",style:{marginBottom:12,marginTop:8},children:[$e.jsx(MM,{})," ",oe.sync.scan_qr]}),$e.jsx(HI,{children:oe.sync.or}),$e.jsx(N3,{children:oe.sync.manual_entry}),$e.jsxs(L3,{children:[$e.jsx(B3,{placeholder:oe.sync.enter_room_id,value:f,onChange:Xe=>y(Xe.target.value),disabled:g==="connected"}),$e.jsx(D2,{onClick:()=>Ke(),disabled:!f||g==="connected"||g==="syncing",title:oe.sync.connect,children:g==="connected"?$e.jsx(d3,{style:{color:re.colors.success}}):$e.jsx(IM,{})})]})]})}),(A||g!=="disconnected")&&$e.jsxs(FI,{$status:g,children:[g==="connecting"&&$e.jsx(p3,{className:"fa-spin"}),A||(g==="ready"?oe.sync.ready_to_share:g==="connected"?oe.sync.connected:"")]})]})})]})}):null},GI=xk`
   0% { opacity: 0; transform: translate(-50%, 20px); }
