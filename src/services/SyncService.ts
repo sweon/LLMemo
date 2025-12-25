@@ -17,7 +17,6 @@ export class SyncService {
     private conn: DataConnection | null = null;
     private options: SyncServiceOptions;
     private heartbeatInterval: any = null;
-    private lastPong: number = 0;
 
     constructor(options: SyncServiceOptions) {
         this.options = options;
@@ -25,24 +24,13 @@ export class SyncService {
     }
 
     public async initialize(roomId: string): Promise<string> {
-        this.destroy(); // Start fresh
-
-        this.options.onStatusChange('connecting', 'Connecting...');
-
         return new Promise((resolve, reject) => {
+            if (this.peer) {
+                this.peer.destroy();
+            }
+
             const cleanId = cleanRoomId(roomId);
-            this.peer = new Peer(cleanId, {
-                debug: 2,
-                secure: true,
-                config: {
-                    'iceServers': [
-                        { urls: 'stun:stun.l.google.com:19302' },
-                        { urls: 'stun:stun1.l.google.com:19302' },
-                        { urls: 'stun:stun2.l.google.com:19302' },
-                        { urls: 'stun:global.stun.twilio.com:3478' }
-                    ]
-                }
-            });
+            this.peer = new Peer(cleanId);
 
             this.peer.on('open', (id) => {
                 this.options.onStatusChange('ready', `Room: ${id}`);
@@ -53,50 +41,37 @@ export class SyncService {
                 this.handleConnection(conn);
             });
 
-            this.peer.on('error', (err: any) => {
-                console.error('Peer error:', err);
-                this.options.onStatusChange('error', `Peer Error: ${err.type || err.message}`);
+            this.peer.on('error', (err) => {
+                this.options.onStatusChange('error', `Error: ${err.type}`);
                 reject(err);
-            });
-
-            this.peer.on('disconnected', () => {
-                if (this.peer && !this.peer.destroyed) {
-                    this.peer.reconnect();
-                }
             });
         });
     }
 
     public connect(targetPeerId: string) {
-        this.destroy(); // Start fresh
-
         this.options.onStatusChange('connecting', 'Initializing...');
 
-        this.peer = new Peer({
-            debug: 2,
-            secure: true,
-            config: {
-                'iceServers': [
-                    { urls: 'stun:stun.l.google.com:19302' },
-                    { urls: 'stun:stun1.l.google.com:19302' },
-                    { urls: 'stun:stun2.l.google.com:19302' },
-                    { urls: 'stun:global.stun.twilio.com:3478' }
-                ]
-            }
-        });
-
-        this.peer.on('open', () => {
-            this.options.onStatusChange('connecting', `Dialing ${targetPeerId}...`);
-            const conn = this.peer!.connect(cleanRoomId(targetPeerId), {
-                reliable: true
+        if (!this.peer || this.peer.destroyed) {
+            this.peer = new Peer();
+            this.peer.on('open', () => {
+                this._connect(cleanRoomId(targetPeerId));
             });
-            this.handleConnection(conn);
-        });
+            this.peer.on('error', (err) => {
+                this.options.onStatusChange('error', `Error: ${err.type}`);
+            });
+        } else {
+            this._connect(cleanRoomId(targetPeerId));
+        }
+    }
 
-        this.peer.on('error', (err: any) => {
-            console.error('Peer error:', err);
-            this.options.onStatusChange('error', `Peer Error: ${err.type || err.message}`);
+    private _connect(targetPeerId: string) {
+        this.options.onStatusChange('connecting', `Dialing ${targetPeerId}...`);
+        if (!this.peer) return;
+
+        const conn = this.peer.connect(targetPeerId, {
+            reliable: true
         });
+        this.handleConnection(conn);
     }
 
     private handleConnection(conn: DataConnection) {
@@ -106,36 +81,26 @@ export class SyncService {
         this.conn = conn;
 
         conn.on('open', () => {
-            console.log('Connection established with:', conn.peer);
             this.options.onStatusChange('connected', 'Connected!');
 
-            this.lastPong = Date.now();
-            this.startHeartbeat();
-
-            // Automatic data exchange on connection
-            // Adding a small delay to ensure the data channel is fully ready for transfer
+            // Automatic bidirectional sync after a small delay
             setTimeout(() => {
-                if (this.conn && this.conn.open) {
-                    this.syncData();
-                }
-            }, 500);
+                this.syncData();
+            }, 1000);
         });
 
         conn.on('data', async (data: any) => {
-            if (data?.type === 'ping') {
-                this.conn?.send({ type: 'pong' });
-                return;
-            }
-            if (data?.type === 'pong') {
-                this.lastPong = Date.now();
+            // Simple ping-pong or data
+            if (data === 'ping') {
+                this.conn?.send('pong');
                 return;
             }
 
             if (data && data.logs && data.models) {
-                this.options.onStatusChange('syncing', `Merging data...`);
+                this.options.onStatusChange('syncing', 'Merging data...');
                 try {
                     await mergeBackupData(data);
-                    this.options.onStatusChange('completed', 'Sync Successful!');
+                    this.options.onStatusChange('completed', 'Sync Completed!');
                     this.options.onDataReceived();
                 } catch (err: any) {
                     this.options.onStatusChange('error', `Sync Failed: ${err.message}`);
@@ -144,29 +109,24 @@ export class SyncService {
         });
 
         conn.on('close', () => {
-            console.log('Connection closed');
             this.stopHeartbeat();
-            if (this.conn === conn) {
-                this.options.onStatusChange('disconnected', 'Disconnected');
-                this.conn = null;
-            }
+            this.options.onStatusChange('disconnected', 'Disconnected');
+            this.conn = null;
         });
 
-        conn.on('error', (err) => {
-            console.error('Connection error:', err);
+        conn.on('error', () => {
             this.options.onStatusChange('error', 'Connection Error');
+            this.stopHeartbeat();
         });
+
+        this.startHeartbeat();
     }
 
     private startHeartbeat() {
         this.stopHeartbeat();
         this.heartbeatInterval = setInterval(() => {
             if (this.conn && this.conn.open) {
-                if (Date.now() - this.lastPong > 30000) {
-                    this.conn.close();
-                    return;
-                }
-                this.conn.send({ type: 'ping' });
+                this.conn.send('ping');
             }
         }, 5000);
     }
@@ -187,7 +147,7 @@ export class SyncService {
                 this.conn.send(data);
             }
         } catch (err: any) {
-            this.options.onStatusChange('error', 'Sync Preparation Failed');
+            this.options.onStatusChange('error', 'Sync Failed');
         }
     }
 
