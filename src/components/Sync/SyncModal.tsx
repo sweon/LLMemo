@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import styled, { useTheme as useStyledTheme } from 'styled-components';
 import { SyncService, cleanRoomId, type SyncStatus } from '../../services/SyncService';
-import { FaTimes, FaSync, FaRegCopy, FaRedo, FaCamera, FaStop, FaCheck, FaLink } from 'react-icons/fa';
+import { FaTimes, FaSync, FaRegCopy, FaRedo, FaCamera, FaStop, FaCheck, FaLink, FaLock, FaShieldAlt } from 'react-icons/fa';
 import { QRCodeSVG } from 'qrcode.react';
 import { Html5QrcodeScanner } from 'html5-qrcode';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -51,15 +51,20 @@ const Header = styled.div`
     background: ${({ theme }) => theme.mode === 'dark' ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0, 0, 0, 0.02)'};
     border-bottom: 1px solid ${({ theme }) => theme.colors.border};
 
-    h2 {
-        margin: 0;
-        font-size: 1.25rem;
-        font-weight: 700;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        color: ${({ theme }) => theme.colors.primary};
-    }
+        h2 {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: ${({ theme }) => theme.colors.primary};
+            
+            svg:last-child {
+                font-size: 0.9rem;
+                opacity: 0.6;
+            }
+        }
 `;
 
 const TabContainer = styled.div`
@@ -353,7 +358,7 @@ export const SyncModal: React.FC<SyncModalProps> = ({ isOpen, onClose }) => {
     const scannerRef = useRef<Html5QrcodeScanner | null>(null);
     const syncService = useRef<SyncService | null>(null);
     const theme = useStyledTheme();
-    const { t } = useLanguage();
+    const { t, language } = useLanguage();
 
     useEffect(() => {
         if (isOpen) {
@@ -479,7 +484,7 @@ export const SyncModal: React.FC<SyncModalProps> = ({ isOpen, onClose }) => {
         <Overlay onClick={handleClose}>
             <ModalContainer onClick={(e: React.MouseEvent) => e.stopPropagation()}>
                 <Header>
-                    <h2><FaSync /> {t.sync.title}</h2>
+                    <h2><FaSync /> {t.sync.title} <FaLock style={{ fontSize: '0.9rem', opacity: 0.6 }} title="End-to-End Encrypted" /></h2>
                     <CloseButton onClick={handleClose}><FaTimes /></CloseButton>
                 </Header>
 
@@ -592,6 +597,27 @@ export const SyncModal: React.FC<SyncModalProps> = ({ isOpen, onClose }) => {
                                 {statusMessage || (status === 'ready' ? t.sync.ready_to_share : status === 'connected' ? t.sync.connected : '')}
                             </StatusBox>
                         )}
+
+                        <div style={{
+                            marginTop: '24px',
+                            padding: '14px',
+                            borderRadius: '12px',
+                            background: theme.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)',
+                            border: `1px solid ${theme.colors.border}`,
+                            fontSize: '0.8rem',
+                            color: theme.colors.textSecondary,
+                            display: 'flex',
+                            alignItems: 'flex-start',
+                            gap: '12px',
+                            lineHeight: '1.5'
+                        }}>
+                            <FaShieldAlt style={{ fontSize: '1.2rem', color: theme.colors.primary, marginTop: '2px', flexShrink: 0 }} />
+                            <span>
+                                {language === 'ko'
+                                    ? "모든 데이터는 기기 내에서 로컬 암호화(AES-256)를 거쳐 안전하게 전송됩니다. 릴레이 서버는 어떠한 데이터도 읽을 수 없습니다."
+                                    : "Data is end-to-end encrypted locally (AES-256) before sync. The relay server cannot access your content."}
+                            </span>
+                        </div>
                     </FormWrapper>
                 </Content>
             </ModalContainer>
