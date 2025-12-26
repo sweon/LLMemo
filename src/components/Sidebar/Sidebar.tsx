@@ -248,13 +248,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
     // Filter
     if (searchQuery) {
       if (searchQuery.startsWith('tag:')) {
-        const tag = searchQuery.slice(4).trim();
-        // For tag search, we might want to use the index, but mixing with sort can be tricky in Dexie raw.
-        // Simpler to filter in memory for this scale if we want flexible sorting on top.
-        // Or use index then sort in memory.
-        if (tag) {
-          const tagged = await db.logs.where('tags').equals(tag).toArray();
-          result = tagged;
+        const query = searchQuery.slice(4).trim().toLowerCase();
+        if (query) {
+          result = result.filter(log => {
+            const hasTag = log.tags?.some(t => t.toLowerCase().includes(query));
+            const modelName = models?.find(m => m.id === log.modelId)?.name.toLowerCase() || '';
+            const hasModel = modelName.includes(query);
+            return hasTag || hasModel;
+          });
         }
       } else {
         const lowerSearch = searchQuery.toLowerCase();

@@ -2,7 +2,7 @@ export const translations = {
     en: {
         sidebar: {
             new: "New",
-            search: "Search... (tag:name for tags)",
+            search: "Search... (tag:name for tags or models)",
             decrease_font: "Decrease Font Size",
             increase_font: "Increase Font Size",
             sync_data: "Sync Data",
@@ -122,7 +122,7 @@ export const translations = {
     ko: {
         sidebar: {
             new: "새 로그",
-            search: "검색... (태그는 tag:이름)",
+            search: "검색... (태그/모델명은 tag:이름)",
             decrease_font: "글자 크기 축소",
             increase_font: "글자 크기 확대",
             sync_data: "데이터 동기화",
