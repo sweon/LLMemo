@@ -57,7 +57,10 @@ export const translations = {
             help_tags: "Tags: Organize logs with searchable tags.",
             help_comments: "Comments: Leave personal notes on each log.",
             help_math: "Math formula editing support.",
-            help_close: "Close"
+            help_close: "Close",
+            share_app: "Share with Friends",
+            share_desc: "Love LLMemo? Share it with your friends!",
+            share_success: "Link copied to clipboard!"
         },
         log_detail: {
             loading: "Loading...",
@@ -172,7 +175,10 @@ export const translations = {
             help_tags: "태그: 태그를 사용하여 로그를 체계적으로 분류하고 검색하세요.",
             help_comments: "댓글: 각 로그에 개인적인 의견이나 메모를 남길 수 있습니다.",
             help_math: "수식 편집: 수학 공식 입력을 위한 수식 편집 기능을 지원합니다.",
-            help_close: "닫기"
+            help_close: "닫기",
+            share_app: "친구에게 공유하기",
+            share_desc: "LLMemo가 마음에 드셨나요? 친구들에게도 알려주세요!",
+            share_success: "링크가 클립보드에 복사되었습니다!"
         },
         log_detail: {
             loading: "로딩 중...",

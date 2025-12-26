@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../db';
 import { exportData, importData } from '../utils/backup';
-import { FiTrash2, FiPlus, FiDownload, FiUpload, FiChevronRight, FiArrowLeft, FiDatabase, FiCpu, FiGlobe, FiInfo } from 'react-icons/fi';
+import { FiTrash2, FiPlus, FiDownload, FiUpload, FiChevronRight, FiArrowLeft, FiDatabase, FiCpu, FiGlobe, FiInfo, FiShare2 } from 'react-icons/fi';
 import { MdDragIndicator } from 'react-icons/md';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import type { DropResult } from '@hello-pangea/dnd';
@@ -481,6 +481,25 @@ export const SettingsPage: React.FC = () => {
     }
   };
 
+  const handleShare = async () => {
+    const shareData = {
+      title: 'LLMemo',
+      text: t.settings.help_desc,
+      url: window.location.origin + window.location.pathname
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(shareData.url);
+        alert(t.settings.share_success);
+      }
+    } catch (err) {
+      console.log('Share failed:', err);
+    }
+  };
+
   const renderHeader = (title: string) => (
     <Header>
       <BackButton onClick={() => setCurrentSubMenu('main')}>
@@ -624,6 +643,15 @@ export const SettingsPage: React.FC = () => {
             <li>{t.settings.help_comments}</li>
             <li>{t.settings.help_math}</li>
           </HelpList>
+
+          <div style={{ marginTop: '2.5rem', padding: '1.5rem', background: 'var(--surface-color)', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+            <h4 style={{ margin: '0 0 0.5rem 0', color: 'var(--text-color)' }}>{t.settings.share_app}</h4>
+            <p style={{ margin: '0 0 1rem 0', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>{t.settings.share_desc}</p>
+            <ActionButton onClick={handleShare} style={{ width: '100%' }}>
+              <FiShare2 /> {t.settings.share_app}
+            </ActionButton>
+          </div>
+
           <div style={{ marginTop: '2rem', padding: '1rem', background: 'var(--surface-color)', borderRadius: '8px', fontSize: '0.85rem', color: 'var(--text-secondary)', textAlign: 'center' }}>
             LLMemo v1.2.0 • Local-First LLM Interaction Logger
           </div>
