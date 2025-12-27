@@ -8,9 +8,10 @@ import { useLanguage } from '../../contexts/LanguageContext';
 
 import { MarkdownEditor } from '../Editor/MarkdownEditor';
 import { MarkdownView } from '../Editor/MarkdownView';
-import { FiEdit2, FiTrash2, FiSave, FiX } from 'react-icons/fi';
+import { FiEdit2, FiTrash2, FiSave, FiX, FiShare2 } from 'react-icons/fi';
 import { format } from 'date-fns';
 import { CommentsSection } from './CommentsSection';
+import { ShareModal } from '../Sync/ShareModal';
 
 const Container = styled.div`
   display: flex;
@@ -113,6 +114,7 @@ export const LogDetail: React.FC = () => {
     const [content, setContent] = useState('');
     const [tags, setTags] = useState(''); // Comma separated for editing
     const [modelId, setModelId] = useState<number | undefined>(undefined);
+    const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
     const log = useLiveQuery(
         () => (id ? db.logs.get(Number(id)) : undefined),
@@ -258,6 +260,9 @@ export const LogDetail: React.FC = () => {
                             <ActionButton $variant="danger" onClick={handleDelete}>
                                 <FiTrash2 /> {t.log_detail.delete}
                             </ActionButton>
+                            <ActionButton onClick={() => setIsShareModalOpen(true)}>
+                                <FiShare2 /> {t.log_detail.share_log}
+                            </ActionButton>
                         </>
                     )}
                 </ActionBar>
@@ -270,6 +275,14 @@ export const LogDetail: React.FC = () => {
                     <MarkdownView content={content} />
                     {!isNew && log && <CommentsSection logId={log.id!} />}
                 </>
+            )}
+            {log && (
+                <ShareModal
+                    isOpen={isShareModalOpen}
+                    onClose={() => setIsShareModalOpen(false)}
+                    logId={log.id!}
+                    logTitle={log.title}
+                />
             )}
         </Container>
     );

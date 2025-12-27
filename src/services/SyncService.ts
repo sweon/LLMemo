@@ -6,6 +6,7 @@ export type SyncStatus = 'disconnected' | 'connecting' | 'connected' | 'syncing'
 export interface SyncServiceOptions {
     onStatusChange: (status: SyncStatus, message?: string) => void;
     onDataReceived: () => void;
+    initialDataLogId?: number; // If set, only this log is synced initially
 }
 
 export const cleanRoomId = (roomId: string): string => {
@@ -134,8 +135,87 @@ export class SyncService {
                     setTimeout(() => this.syncData(), 1000);
                 }
                 break;
+            case 'sync_data':
+                if (!this.isHost && payload.data) {
+                    this.options.onStatusChange('syncing', 'Decrypting data...');
+                    await this.processReceivedEncodedData(payload.data);
+                }
+                break;
             case 'ping':
                 break;
+        }
+    }
+
+    public async syncData() {
+        if (!this.roomId || this.isSyncing) return;
+
+        try {
+            this.isSyncing = true;
+            this.options.onStatusChange('syncing', 'Preparing data...');
+
+            // Allow syncing only specific log if requested
+            const data = await getBackupData(this.options.initialDataLogId ? [this.options.initialDataLogId] : undefined);
+            const jsonStr = JSON.stringify(data);
+
+            this.options.onStatusChange('syncing', 'Encrypting...');
+            const encrypted = await encryptData(jsonStr, this.roomId);
+
+            // Ntfy limits: 
+            // Attachment recommended for larger data. 
+            // Let's use attachment for everything > 2KB to be safe and consistent.
+            if (encrypted.length > 2000) {
+                this.options.onStatusChange('syncing', 'Uploading attachment...');
+                await this.sendRelayAttachment(encrypted);
+            } else {
+                this.options.onStatusChange('syncing', 'Sending message...');
+                await this.sendRelayMessage({
+                    type: 'sync_data',
+                    data: encrypted
+                });
+            }
+            console.log('Data sent to relay');
+            this.options.onStatusChange('connected', 'Data sent!');
+        } catch (err: any) {
+            console.error('Sync failed:', err);
+            this.options.onStatusChange('error', `Sync failed: ${err.message}`);
+        } finally {
+            this.isSyncing = false;
+        }
+    }
+
+    private async sendRelayAttachment(encryptedData: string) {
+        if (!this.roomId) return;
+        const tags = [this.isHost ? 'host' : 'client', `inst_${this.instanceId}`];
+
+        await fetch(`${RELAY_BASE}/${this.roomId}`, {
+            method: 'PUT',
+            body: encryptedData,
+            headers: {
+                'Filename': 'sync.enc',
+                'Title': 'LLMemo Sync Data',
+                'Tags': tags.join(',')
+            }
+        });
+    }
+
+    private async sendRelayMessage(payload: any) {
+        if (!this.roomId) return;
+
+        try {
+            const tags = [this.isHost ? 'host' : 'client', `inst_${this.instanceId}`];
+            payload.sender = this.isHost ? 'host' : 'client';
+            payload.instanceId = this.instanceId;
+
+            await fetch(`${RELAY_BASE}/${this.roomId}`, {
+                method: 'POST',
+                body: JSON.stringify(payload),
+                headers: {
+                    'Tags': tags.join(',')
+                }
+            });
+        } catch (e) {
+            console.error('Failed to send relay message:', e);
+            throw e;
         }
     }
 
@@ -150,84 +230,49 @@ export class SyncService {
         }
     }
 
-    private async sendRelayMessage(payload: any, isData: boolean = false) {
-        if (!this.roomId) return;
-
-        try {
-            const tags = [this.isHost ? 'host' : 'client', `inst_${this.instanceId}`];
-            if (isData) {
-                // For data, we send it as an attachment
-                await fetch(`${RELAY_BASE}/${this.roomId}`, {
-                    method: 'PUT',
-                    body: payload,
-                    headers: {
-                        'Filename': 'sync.enc',
-                        'Title': 'LLMemo Sync Data',
-                        'Tags': tags.join(',')
-                    }
-                });
-            } else {
-                // For regular signaling
-                payload.sender = this.isHost ? 'host' : 'client';
-                payload.instanceId = this.instanceId;
-                await fetch(`${RELAY_BASE}/${this.roomId}`, {
-                    method: 'POST',
-                    body: JSON.stringify(payload),
-                    headers: {
-                        'Tags': tags.join(',')
-                    }
-                });
-            }
-        } catch (e) {
-            console.error('Failed to send relay message:', e);
-            this.options.onStatusChange('error', 'Relay send failed');
-        }
-    }
-
     private async processReceivedEncodedData(encodedData: string) {
         try {
             const decrypted = await decryptData(encodedData, this.roomId!);
             const data = JSON.parse(decrypted);
 
+            // If we are in single-log sharing mode (Sender), we usually don't want to merge the Receiver's full backup.
+            if (this.options.initialDataLogId && this.isHost) {
+                console.log("In single log share mode, skipping merge of incoming data.");
+                this.options.onStatusChange('completed', 'Log shared successfully!');
+                return;
+            }
+
             this.options.onStatusChange('syncing', 'Merging data...');
             await mergeBackupData(data);
 
             if (this.isHost) {
+                // Host received data (bidirectional sync return)
                 this.options.onStatusChange('completed', 'Sync Completed!');
                 this.options.onDataReceived();
             } else {
-                // After client merges, it sends its data back to host for bidirectional sync
+                // Client received data
+                // If this is a single log share (client just joined), we don't necessarily need to bidirectional sync everything back?
+                // But current logic is simple. Let's keep bidirectional for robustness, 
+                // BUT if we received just one log, maybe we shouldn't dump our whole DB back?
+                // Actually, 'syncData()' now respects 'initialDataLogId'. If client has no 'initialDataLogId', it will send everything.
+                // For "Share Log", usually it's one way (Sender -> Receiver).
+                // But receiver might want to update sender? Let's keep it simple.
+                // If receiver didn't initiate with a specific LogID, they probably share everything back.
+
                 this.options.onStatusChange('syncing', 'Synchronizing back...');
+
+                // IMPORTANT: Prevent infinite loops. Currently both sides sync back.
+                // We rely on 'handleRelayMessage' ignoring own instanceId.
+                // But logic here: Client receives -> Merges -> Sends Back.
+                // Host receives -> Merges -> Done.
                 await this.syncData();
+
                 this.options.onStatusChange('completed', 'Sync Completed!');
                 this.options.onDataReceived();
             }
         } catch (e: any) {
             console.error('Process error:', e);
             this.options.onStatusChange('error', `Decrypt/Merge failed: ${e.message}`);
-        }
-    }
-
-    public async syncData() {
-        if (!this.roomId || this.isSyncing) return;
-
-        try {
-            this.isSyncing = true;
-            this.options.onStatusChange('syncing', 'Preparing data...');
-            const data = await getBackupData();
-            const jsonStr = JSON.stringify(data);
-
-            this.options.onStatusChange('syncing', 'Encrypting...');
-            const encrypted = await encryptData(jsonStr, this.roomId);
-
-            this.options.onStatusChange('syncing', 'Uploading to relay...');
-            await this.sendRelayMessage(encrypted, true);
-            console.log('Data sent to relay');
-        } catch (err: any) {
-            console.error('Sync failed:', err);
-            this.options.onStatusChange('error', `Sync failed: ${err.message}`);
-        } finally {
-            this.isSyncing = false;
         }
     }
 

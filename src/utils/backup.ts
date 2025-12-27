@@ -12,10 +12,16 @@ const downloadFile = (content: string, fileName: string, contentType: string) =>
 };
 
 
-export const getBackupData = async () => {
+export const getBackupData = async (logIds?: number[]) => {
     let logs = await db.logs.toArray();
     const models = await db.models.toArray();
     let comments = await db.comments.toArray();
+
+    if (logIds && logIds.length > 0) {
+        logs = logs.filter(l => l.id !== undefined && logIds.includes(l.id));
+        comments = comments.filter(c => logIds.includes(c.logId));
+        // Keep all models to ensure references work, they are small anyway
+    }
 
     return {
         version: 1,
@@ -27,12 +33,7 @@ export const getBackupData = async () => {
 };
 
 export const exportData = async (selectedLogIds?: number[], customFileName?: string) => {
-    let data = await getBackupData();
-
-    if (selectedLogIds && selectedLogIds.length > 0) {
-        data.logs = data.logs.filter(l => l.id !== undefined && selectedLogIds.includes(l.id));
-        data.comments = data.comments.filter(c => selectedLogIds.includes(c.logId));
-    }
+    let data = await getBackupData(selectedLogIds);
 
     let fileName = customFileName;
     if (!fileName) {
