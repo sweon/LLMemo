@@ -80,7 +80,7 @@ export const translations = {
             delete_confirm: "Are you sure you want to delete this log?",
             untitled: "Untitled",
             unknown_model: "Unknown",
-            share_log: "Share Log"
+            share_log: "Share"
         },
         comments: {
             title: "Comments",
@@ -206,7 +206,7 @@ export const translations = {
             delete_confirm: "이 로그를 삭제하시겠습니까?",
             untitled: "제목 없음",
             unknown_model: "알 수 없음",
-            share_log: "로그 공유"
+            share_log: "공유"
         },
         comments: {
             title: "댓글",
