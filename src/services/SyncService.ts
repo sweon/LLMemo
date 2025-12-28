@@ -1,5 +1,6 @@
 import { getBackupData, mergeBackupData } from '../utils/backup';
 import { encryptData, decryptData } from '../utils/crypto';
+import { db } from '../db';
 
 export type SyncStatus = 'disconnected' | 'connecting' | 'connected' | 'syncing' | 'completed' | 'error' | 'ready';
 
@@ -153,16 +154,32 @@ export class SyncService {
             this.isSyncing = true;
             this.options.onStatusChange('syncing', 'Preparing data...');
 
+            let targetLogIds: number[] | undefined;
+
+            if (this.options.initialDataLogId) {
+                const log = await db.logs.get(this.options.initialDataLogId);
+                if (log && log.threadId) {
+                    const threadLogs = await db.logs.where('threadId').equals(log.threadId).sortBy('threadOrder');
+                    // Check if current log is the first one (Head)
+                    if (threadLogs.length > 0 && threadLogs[0].id === log.id) {
+                        // Is Head -> Share ALL
+                        targetLogIds = threadLogs.map(l => l.id!);
+                    } else {
+                        // Is Body or otherwise -> Share SINGLE
+                        targetLogIds = [this.options.initialDataLogId];
+                    }
+                } else {
+                    targetLogIds = [this.options.initialDataLogId];
+                }
+            }
+
             // Allow syncing only specific log if requested
-            const data = await getBackupData(this.options.initialDataLogId ? [this.options.initialDataLogId] : undefined);
+            const data = await getBackupData(targetLogIds);
             const jsonStr = JSON.stringify(data);
 
             this.options.onStatusChange('syncing', 'Encrypting...');
             const encrypted = await encryptData(jsonStr, this.roomId);
 
-            // Ntfy limits: 
-            // Attachment recommended for larger data. 
-            // Let's use attachment for everything > 2KB to be safe and consistent.
             if (encrypted.length > 2000) {
                 this.options.onStatusChange('syncing', 'Uploading attachment...');
                 await this.sendRelayAttachment(encrypted);
@@ -255,20 +272,7 @@ export class SyncService {
                 this.options.onDataReceived();
             } else {
                 // Client received data
-                // If this is a single log share (client just joined), we don't necessarily need to bidirectional sync everything back?
-                // But current logic is simple. Let's keep bidirectional for robustness, 
-                // BUT if we received just one log, maybe we shouldn't dump our whole DB back?
-                // Actually, 'syncData()' now respects 'initialDataLogId'. If client has no 'initialDataLogId', it will send everything.
-                // For "Share Log", usually it's one way (Sender -> Receiver).
-                // But receiver might want to update sender? Let's keep it simple.
-                // If receiver didn't initiate with a specific LogID, they probably share everything back.
-
                 this.options.onStatusChange('syncing', 'Synchronizing back...');
-
-                // IMPORTANT: Prevent infinite loops. Currently both sides sync back.
-                // We rely on 'handleRelayMessage' ignoring own instanceId.
-                // But logic here: Client receives -> Merges -> Sends Back.
-                // Host receives -> Merges -> Done.
                 await this.syncData();
 
                 this.options.onStatusChange('completed', 'Sync Completed!');
