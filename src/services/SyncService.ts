@@ -4,9 +4,17 @@ import { db } from '../db';
 
 export type SyncStatus = 'disconnected' | 'connecting' | 'connected' | 'syncing' | 'completed' | 'error' | 'ready';
 
+
+export interface SyncInfo {
+    type: 'full' | 'single' | 'thread';
+    count: number;
+    label?: string;
+}
+
 export interface SyncServiceOptions {
     onStatusChange: (status: SyncStatus, message?: string) => void;
     onDataReceived: () => void;
+    onSyncInfo?: (info: SyncInfo) => void;
     initialDataLogId?: number; // If set, only this log is synced initially
 }
 
@@ -34,11 +42,53 @@ export class SyncService {
         this.isHost = true;
         this.roomId = cleanRoomId(roomId);
 
+        await this.analyzeSyncData();
+
         this.options.onStatusChange('connecting', 'Connecting to relay...');
         await this.connectRelay();
 
         this.options.onStatusChange('ready', `Room ID: ${this.roomId}`);
         return this.roomId;
+    }
+
+    private async analyzeSyncData() {
+        if (!this.options.onSyncInfo) return;
+
+        try {
+            if (this.options.initialDataLogId) {
+                const log = await db.logs.get(this.options.initialDataLogId);
+                if (log) {
+                    if (log.threadId) {
+                        const threadLogs = await db.logs.where('threadId').equals(log.threadId).count();
+                        const isHead = (await db.logs.where('threadId').equals(log.threadId).sortBy('threadOrder'))[0]?.id === log.id;
+
+                        if (isHead && threadLogs > 1) {
+                            this.options.onSyncInfo({
+                                type: 'thread',
+                                count: threadLogs,
+                                label: log.title
+                            });
+                            return;
+                        }
+                    }
+                    this.options.onSyncInfo({
+                        type: 'single',
+                        count: 1,
+                        label: log.title
+                    });
+                    return;
+                }
+            }
+
+            const totalLogs = await db.logs.count();
+            this.options.onSyncInfo({
+                type: 'full',
+                count: totalLogs,
+                label: 'All Data'
+            });
+        } catch (e) {
+            console.error('Failed to analyze sync data', e);
+        }
     }
 
     public async connect(targetRoomId: string) {
@@ -235,7 +285,7 @@ export class SyncService {
                     'Tags': tags.join(',')
                 }
             });
-        } catch (e) {
+        } catch (e: any) {
             console.error('Failed to send relay message:', e);
             throw e;
         }
@@ -288,6 +338,30 @@ export class SyncService {
         let data: any;
         try {
             data = JSON.parse(decrypted);
+
+            // Analyze received data for visual indicator on receiver side
+            if (this.options.onSyncInfo && data.logs) {
+                if (!isPartial) {
+                    this.options.onSyncInfo({
+                        type: 'full',
+                        count: data.logs.length,
+                        label: 'Full Backup'
+                    });
+                } else if (data.logs.length > 1) {
+                    this.options.onSyncInfo({
+                        type: 'thread',
+                        count: data.logs.length,
+                        label: data.logs[0]?.title || 'Combined Logs'
+                    });
+                } else {
+                    this.options.onSyncInfo({
+                        type: 'single',
+                        count: 1,
+                        label: data.logs[0]?.title || 'Log'
+                    });
+                }
+            }
+
         } catch (e: any) {
             console.error('JSON Parse error:', e);
             this.options.onStatusChange('error', `JSON Parse failed: ${e.message}`);

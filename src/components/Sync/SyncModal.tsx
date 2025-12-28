@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import styled, { useTheme as useStyledTheme } from 'styled-components';
-import { SyncService, cleanRoomId, type SyncStatus } from '../../services/SyncService';
-import { FaTimes, FaSync, FaRegCopy, FaRedo, FaCamera, FaStop, FaCheck, FaLink, FaLock, FaShieldAlt } from 'react-icons/fa';
+import { SyncService, cleanRoomId, type SyncStatus, type SyncInfo } from '../../services/SyncService';
+import { FaTimes, FaSync, FaRegCopy, FaRedo, FaCamera, FaStop, FaCheck, FaLink, FaLock, FaShieldAlt, FaLayerGroup, FaFileAlt, FaDatabase } from 'react-icons/fa';
 import { QRCodeSVG } from 'qrcode.react';
 import { Html5QrcodeScanner } from 'html5-qrcode';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -244,36 +244,120 @@ const ActionButton = styled.button<{ $variant?: 'primary' | 'secondary' | 'dange
     }
 `;
 
+const InfoCard = styled.div`
+    background: ${({ theme }) => theme.colors.surface};
+    border: 1px solid ${({ theme }) => theme.colors.primary}40;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    animation: fadeIn 0.3s ease;
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .icon-box {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        background: ${({ theme }) => theme.colors.primary}15;
+        color: ${({ theme }) => theme.colors.primary};
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        flex-shrink: 0;
+    }
+    
+    .content {
+        flex: 1;
+        min-width: 0;
+        
+        h4 {
+            margin: 0 0 4px 0;
+            font-size: 0.9rem;
+            color: ${({ theme }) => theme.colors.primary};
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        p {
+            margin: 0;
+            font-size: 0.95rem;
+            color: ${({ theme }) => theme.colors.text};
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .sub {
+            font-size: 0.8rem;
+            color: ${({ theme }) => theme.colors.textSecondary};
+            margin-top: 2px;
+        }
+    }
+`;
+
+const ProgressContainer = styled.div`
+    width: 100%;
+    margin-top: 20px;
+`;
+
+const ProgressBar = styled.div<{ $percent: number }>`
+    height: 6px;
+    background: ${({ theme }) => theme.colors.border};
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 12px;
+    position: relative;
+
+    &::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        width: ${props => props.$percent}%;
+        background: ${({ theme }) => theme.colors.primary};
+        transition: width 0.3s ease;
+    }
+`;
+
 const StatusBox = styled.div<{ $status: SyncStatus }>`
     padding: 16px;
     border-radius: 12px;
     background-color: ${({ theme }) => theme.colors.surface};
-    margin-top: 24px;
     text-align: center;
     font-weight: 500;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 10px;
-    font-size: 0.9rem;
+    gap: 8px;
+    font-size: 0.95rem;
     width: 100%;
     word-break: break-word;
     
-    color: ${props => {
+    color: ${({ theme }) => theme.colors.text};
+    border: 1px solid ${({ theme }) => theme.colors.border};
+
+    .icon-area {
+        font-size: 1.5rem;
+        margin-bottom: 4px;
+        color: ${props => {
         if (props.$status === 'error') return props.theme.colors.danger;
         if (props.$status === 'completed') return props.theme.colors.success;
         if (props.$status === 'ready' || props.$status === 'connected') return props.theme.colors.primary;
         if (props.$status === 'connecting') return '#f59e0b';
         return props.theme.colors.textSecondary;
     }};
-    
-    border: 1px solid ${props => {
-        if (props.$status === 'error') return props.theme.colors.danger + '40';
-        if (props.$status === 'completed') return props.theme.colors.success + '40';
-        if (props.$status === 'ready' || props.$status === 'connected') return props.theme.colors.primary + '40';
-        if (props.$status === 'connecting') return '#f59e0b40';
-        return props.theme.colors.border;
-    }};
+    }
 `;
 
 const QRWrapper = styled.div`
@@ -355,6 +439,8 @@ export const SyncModal: React.FC<SyncModalProps> = ({ isOpen, onClose }) => {
     const [statusMessage, setStatusMessage] = useState('');
     const [isScanning, setIsScanning] = useState(false);
     const [copied, setCopied] = useState(false);
+    const [syncInfo, setSyncInfo] = useState<SyncInfo | null>(null);
+    const [progress, setProgress] = useState(0);
     const scannerRef = useRef<Html5QrcodeScanner | null>(null);
     const syncService = useRef<SyncService | null>(null);
     const theme = useStyledTheme();
@@ -403,6 +489,8 @@ export const SyncModal: React.FC<SyncModalProps> = ({ isOpen, onClose }) => {
         }
         setStatus('disconnected');
         setStatusMessage('');
+        setSyncInfo(null);
+        setProgress(0);
         setIsScanning(false);
         onClose();
     };
@@ -410,6 +498,22 @@ export const SyncModal: React.FC<SyncModalProps> = ({ isOpen, onClose }) => {
     const handleStatusChange = (newStatus: SyncStatus, msg?: string) => {
         setStatus(newStatus);
         if (msg) setStatusMessage(msg);
+
+        // Estimate progress based on status and message
+        if (newStatus === 'connecting') setProgress(15);
+        else if (newStatus === 'connected') setProgress(30);
+        else if (newStatus === 'syncing') {
+            if (msg?.toLowerCase().includes('preparing')) setProgress(10);
+            else if (msg?.toLowerCase().includes('encrypting')) setProgress(25);
+            else if (msg?.toLowerCase().includes('sending') || msg?.toLowerCase().includes('uploading')) setProgress(45);
+            else if (msg?.toLowerCase().includes('downloading')) setProgress(60);
+            else if (msg?.toLowerCase().includes('decrypting')) setProgress(75);
+            else if (msg?.toLowerCase().includes('merging')) setProgress(90);
+            else if (msg?.toLowerCase().includes('back')) setProgress(95);
+            else setProgress(50);
+        }
+        else if (newStatus === 'completed') setProgress(100);
+        else if (newStatus === 'error' || newStatus === 'disconnected' || newStatus === 'ready') setProgress(0);
     };
 
     const getService = () => {
@@ -419,10 +523,12 @@ export const SyncModal: React.FC<SyncModalProps> = ({ isOpen, onClose }) => {
                 onDataReceived: () => {
                     setStatus('completed');
                     setStatusMessage(t.sync.data_synced_reload);
+                    setProgress(100);
                     setTimeout(() => {
                         window.location.reload();
                     }, 3000);
-                }
+                },
+                onSyncInfo: (info) => setSyncInfo(info)
             });
         }
         return syncService.current;
@@ -457,7 +563,7 @@ export const SyncModal: React.FC<SyncModalProps> = ({ isOpen, onClose }) => {
         } catch (e: any) {
             console.error('Connect error:', e);
             setStatus('error');
-            setStatusMessage(`Connection failed: ${e.message || 'Unknown error'}`);
+            setStatusMessage(`Connection failed: ${e.message || 'Unknown error'} `);
         }
     };
 
@@ -479,6 +585,8 @@ export const SyncModal: React.FC<SyncModalProps> = ({ isOpen, onClose }) => {
         setRoomId(newId);
         setStatus('disconnected');
         setStatusMessage('');
+        setSyncInfo(null);
+        setProgress(0);
 
         if (activeTab === 'host') {
             startHosting(newId);
@@ -516,6 +624,20 @@ export const SyncModal: React.FC<SyncModalProps> = ({ isOpen, onClose }) => {
                     <FormWrapper>
                         {activeTab === 'host' ? (
                             <>
+                                {syncInfo && (
+                                    <InfoCard>
+                                        <div className="icon-box">
+                                            {syncInfo.type === 'thread' ? <FaLayerGroup /> :
+                                                syncInfo.type === 'full' ? <FaDatabase /> : <FaFileAlt />}
+                                        </div>
+                                        <div className="content">
+                                            <h4>{syncInfo.type === 'thread' ? 'Sharing Thread' :
+                                                syncInfo.type === 'full' ? 'Full Backup' : 'Sharing Log'}</h4>
+                                            <p>{syncInfo.label}</p>
+                                            <div className="sub">{syncInfo.count} items</div>
+                                        </div>
+                                    </InfoCard>
+                                )}
                                 <Label>{t.sync.your_room_id}</Label>
                                 <InputGroup>
                                     <Input
@@ -556,6 +678,22 @@ export const SyncModal: React.FC<SyncModalProps> = ({ isOpen, onClose }) => {
                                         <ScannerContainer>
                                             <div id="reader"></div>
                                         </ScannerContainer>
+
+                                        {syncInfo && (
+                                            <InfoCard>
+                                                <div className="icon-box">
+                                                    {syncInfo.type === 'thread' ? <FaLayerGroup /> :
+                                                        syncInfo.type === 'full' ? <FaDatabase /> : <FaFileAlt />}
+                                                </div>
+                                                <div className="content">
+                                                    <h4>{syncInfo.type === 'thread' ? 'Received Thread' :
+                                                        syncInfo.type === 'full' ? 'Receiving Backup' : 'Received Log'}</h4>
+                                                    <p>{syncInfo.label}</p>
+                                                    <div className="sub">{syncInfo.count} items</div>
+                                                </div>
+                                            </InfoCard>
+                                        )}
+
                                         <ActionButton
                                             $fullWidth
                                             $variant="secondary"
@@ -576,6 +714,21 @@ export const SyncModal: React.FC<SyncModalProps> = ({ isOpen, onClose }) => {
                                         </ActionButton>
 
                                         <Divider>{t.sync.or}</Divider>
+
+                                        {syncInfo && (
+                                            <InfoCard>
+                                                <div className="icon-box">
+                                                    {syncInfo.type === 'thread' ? <FaLayerGroup /> :
+                                                        syncInfo.type === 'full' ? <FaDatabase /> : <FaFileAlt />}
+                                                </div>
+                                                <div className="content">
+                                                    <h4>{syncInfo.type === 'thread' ? 'Received Thread' :
+                                                        syncInfo.type === 'full' ? 'Receiving Backup' : 'Received Log'}</h4>
+                                                    <p>{syncInfo.label}</p>
+                                                    <div className="sub">{syncInfo.count} items</div>
+                                                </div>
+                                            </InfoCard>
+                                        )}
 
                                         <Label>{t.sync.manual_entry}</Label>
                                         <InputGroup>
@@ -599,10 +752,20 @@ export const SyncModal: React.FC<SyncModalProps> = ({ isOpen, onClose }) => {
                         )}
 
                         {(statusMessage || status !== 'disconnected') && (
-                            <StatusBox $status={status}>
-                                {status === 'connecting' && <FaSync className="fa-spin" />}
-                                {statusMessage || (status === 'ready' ? t.sync.ready_to_share : status === 'connected' ? t.sync.connected : '')}
-                            </StatusBox>
+                            <ProgressContainer>
+                                {(progress > 0) && <ProgressBar $percent={progress} />}
+                                <StatusBox $status={status}>
+                                    <div className="icon-area">
+                                        {status === 'connecting' || status === 'syncing' ? <FaSync className="fa-spin" /> :
+                                            status === 'completed' ? <FaCheck /> :
+                                                status === 'error' ? <FaTimes /> :
+                                                    status === 'connected' ? <FaLink /> : null}
+                                    </div>
+                                    <div>
+                                        {statusMessage || (status === 'ready' ? t.sync.ready_to_share : status === 'connected' ? t.sync.connected : '')}
+                                    </div>
+                                </StatusBox>
+                            </ProgressContainer>
                         )}
 
                         <div style={{
@@ -610,7 +773,7 @@ export const SyncModal: React.FC<SyncModalProps> = ({ isOpen, onClose }) => {
                             padding: '14px',
                             borderRadius: '12px',
                             background: theme.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)',
-                            border: `1px solid ${theme.colors.border}`,
+                            border: `1px solid ${theme.colors.border} `,
                             fontSize: '0.8rem',
                             color: theme.colors.textSecondary,
                             display: 'flex',
