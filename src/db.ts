@@ -8,6 +8,8 @@ export interface Log {
     tags: string[];
     createdAt: Date;
     updatedAt: Date;
+    threadId?: string;
+    threadOrder?: number;
 }
 
 export interface Model {
@@ -40,6 +42,10 @@ export class LLMLogDatabase extends Dexie {
 
         this.version(2).stores({
             models: '++id, name, order'
+        });
+
+        this.version(3).stores({
+            logs: '++id, title, *tags, modelId, createdAt, updatedAt, threadId'
         });
     }
 }

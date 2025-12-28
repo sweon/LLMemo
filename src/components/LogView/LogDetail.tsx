@@ -8,7 +8,7 @@ import { useLanguage } from '../../contexts/LanguageContext';
 
 import { MarkdownEditor } from '../Editor/MarkdownEditor';
 import { MarkdownView } from '../Editor/MarkdownView';
-import { FiEdit2, FiTrash2, FiSave, FiX, FiShare2 } from 'react-icons/fi';
+import { FiEdit2, FiTrash2, FiSave, FiX, FiShare2, FiGitMerge } from 'react-icons/fi';
 import { format } from 'date-fns';
 import { CommentsSection } from './CommentsSection';
 import { ShareModal } from '../Sync/ShareModal';
@@ -180,6 +180,48 @@ export const LogDetail: React.FC = () => {
         }
     };
 
+    const handleAddThread = async () => {
+        if (!log || !id) return;
+
+        const now = new Date();
+        let threadId = log.threadId;
+        let threadOrder = 0;
+
+        try {
+            if (!threadId) {
+                // Create new thread for current log
+                threadId = crypto.randomUUID();
+                await db.logs.update(Number(id), {
+                    threadId,
+                    threadOrder: 0
+                });
+                threadOrder = 1;
+            } else {
+                // Find max order in this thread
+                const threadLogs = await db.logs.where('threadId').equals(threadId).toArray();
+                const maxOrder = Math.max(...threadLogs.map(l => l.threadOrder || 0));
+                threadOrder = maxOrder + 1;
+            }
+
+            // Create new log in thread
+            const newLogId = await db.logs.add({
+                title: '', // Empty title implies continuation
+                content: '',
+                tags: log.tags, // Inherit tags
+                modelId: log.modelId, // Inherit model
+                createdAt: now,
+                updatedAt: now,
+                threadId,
+                threadOrder
+            });
+
+            navigate(`/log/${newLogId}`);
+        } catch (error) {
+            console.error("Failed to add thread:", error);
+            alert("Failed to add thread. Please try again.");
+        }
+    };
+
     const currentModelName = models?.find(m => m.id === modelId)?.name || t.log_detail.unknown_model;
 
     if (!isNew && !log) return <Container>{t.log_detail.loading}</Container>;
@@ -256,6 +298,9 @@ export const LogDetail: React.FC = () => {
                         <>
                             <ActionButton onClick={() => setIsEditing(true)}>
                                 <FiEdit2 /> {t.log_detail.edit}
+                            </ActionButton>
+                            <ActionButton onClick={handleAddThread}>
+                                <FiGitMerge /> Add Thread
                             </ActionButton>
                             <ActionButton $variant="danger" onClick={handleDelete}>
                                 <FiTrash2 /> {t.log_detail.delete}

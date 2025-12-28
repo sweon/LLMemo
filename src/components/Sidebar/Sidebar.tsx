@@ -7,6 +7,8 @@ import { FiPlus, FiMinus, FiSettings, FiSun, FiMoon, FiSearch, FiX, FiRefreshCw,
 import { useRegisterSW } from 'virtual:pwa-register/react';
 import { Tooltip } from '../UI/Tooltip';
 import { SyncModal } from '../Sync/SyncModal';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import type { DropResult } from '@hello-pangea/dnd';
 import { Toast } from '../UI/Toast';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useSearch } from '../../contexts/SearchContext';
@@ -119,14 +121,38 @@ const LogList = styled.div`
   padding: 0.5rem;
 `;
 
-const LogItem = styled(Link) <{ $isActive: boolean }>`
+const LogItem = styled(Link) <{ $isActive: boolean; $inThread?: boolean; $isThreadStart?: boolean; $isThreadEnd?: boolean }>`
   display: block;
   padding: 0.5rem 0.75rem;
   border-radius: 6px;
-  margin-bottom: 0.125rem;
+  margin-bottom: ${({ $inThread, $isThreadEnd }) => ($inThread && !$isThreadEnd ? '0' : '0.125rem')}; // Remove margin between thread items
   text-decoration: none;
   background: ${({ $isActive, theme }) => ($isActive ? theme.colors.border : 'transparent')};
-  color: ${({ theme }) => theme.colors.text}; // Ensure text color is set explicitly
+  color: ${({ theme }) => theme.colors.text};
+  
+  margin-left: ${({ $inThread }) => ($inThread ? '1.5rem' : '0')};
+  position: relative;
+  
+  ${({ $inThread, theme, $isThreadStart, $isThreadEnd }) => $inThread && `
+    &::before {
+      content: '';
+      position: absolute;
+      left: -0.75rem;
+      top: ${$isThreadStart ? '50%' : '0'};
+      bottom: ${$isThreadEnd ? '50%' : '0'};
+      width: 2px;
+      background-color: ${theme.colors.border};
+    }
+    &::after {
+      content: '';
+      position: absolute;
+      left: -0.75rem;
+      top: 50%;
+      width: 0.5rem;
+      height: 2px;
+      background-color: ${theme.colors.border};
+    }
+  `}
 
   &:hover {
     background: ${({ theme, $isActive }) => ($isActive ? theme.colors.border : theme.colors.surface)};
@@ -298,7 +324,44 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
       });
     }
 
-    return result.sort((a, b) => {
+    // Grouping and Sorting
+    const groups = new Map<string, typeof result>();
+    const singles: typeof result = [];
+
+    result.forEach(l => {
+      if (l.threadId) {
+        if (!groups.has(l.threadId)) groups.set(l.threadId, []);
+        groups.get(l.threadId)!.push(l);
+      } else {
+        singles.push(l);
+      }
+    });
+
+    // Sort logs within threads by threadOrder
+    groups.forEach(groupLogs => {
+      groupLogs.sort((a, b) => (a.threadOrder ?? 0) - (b.threadOrder ?? 0));
+    });
+
+    type SortableItem = {
+      type: 'single' | 'group',
+      log?: typeof result[0],
+      logs?: typeof result,
+      representativeLog: typeof result[0]
+    };
+
+    const items: SortableItem[] = [
+      ...singles.map(l => ({ type: 'single' as const, log: l, representativeLog: l })),
+      ...Array.from(groups.values()).map(g => {
+        const latest = g.reduce((prev, curr) => (new Date(prev.createdAt) > new Date(curr.createdAt) ? prev : curr), g[0]);
+        return { type: 'group' as const, logs: g, representativeLog: latest };
+      })
+    ];
+
+    // Main Sort
+    items.sort((itemA, itemB) => {
+      const a = itemA.representativeLog;
+      const b = itemB.representativeLog;
+
       if (sortBy === 'date-desc') {
         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       } else if (sortBy === 'date-asc') {
@@ -306,13 +369,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
       } else if (sortBy === 'model-desc' || sortBy === 'model-asc') {
         const orderA = a.modelId ? (modelOrderMap.get(a.modelId) ?? 999) : 1000;
         const orderB = b.modelId ? (modelOrderMap.get(b.modelId) ?? 999) : 1000;
-
-        // Primary sort: Manual Order from settings
         if (orderA !== orderB) {
           return sortBy === 'model-desc' ? orderA - orderB : orderB - orderA;
         }
-
-        // Secondary sort: By date
         const timeA = new Date(a.createdAt).getTime();
         const timeB = new Date(b.createdAt).getTime();
         return sortBy === 'model-desc' ? timeB - timeA : timeA - timeB;
@@ -320,12 +379,91 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
         const timeA = commentActivity.get(a.id!) || 0;
         const timeB = commentActivity.get(b.id!) || 0;
         if (timeA !== timeB) return timeB - timeA;
-        // Fallback to latest log first
         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       }
       return 0;
     });
+
+    // Flatten with metadata
+    const flatLogs: Array<typeof result[0] & { inThread?: boolean, isThreadStart?: boolean, isThreadEnd?: boolean }> = [];
+
+    items.forEach(item => {
+      if (item.type === 'single' && item.log) {
+        flatLogs.push(item.log);
+      } else if (item.type === 'group' && item.logs) {
+        item.logs.forEach((l, index) => {
+          flatLogs.push({
+            ...l,
+            inThread: true,
+            isThreadStart: index === 0,
+            isThreadEnd: index === item.logs!.length - 1
+          });
+        });
+      }
+    });
+
+    return flatLogs;
   }, [allLogs, allModels, allComments, searchQuery, sortBy]);
+
+
+  const onDragEnd = async (result: DropResult) => {
+    const { source, destination, combine } = result;
+
+    if (combine) {
+      const sourceLog = logs[source.index];
+      const targetLogId = Number(combine.draggableId);
+      const targetLog = allLogs?.find(l => l.id === targetLogId);
+
+      if (!sourceLog || !targetLog || sourceLog.id === targetLog.id) return;
+
+      let threadId = targetLog.threadId;
+
+      // Create new thread if target doesn't have one
+      if (!threadId) {
+        threadId = crypto.randomUUID();
+        await db.logs.update(targetLog.id!, { threadId, threadOrder: 0 });
+      }
+
+      // Add source to thread
+      const threadLogs = await db.logs.where('threadId').equals(threadId).toArray();
+      const maxOrder = Math.max(...threadLogs.map(l => l.threadOrder || 0));
+
+      await db.logs.update(sourceLog.id!, {
+        threadId,
+        threadOrder: maxOrder + 1
+      });
+      return;
+    }
+
+    if (!destination || source.index === destination.index) return;
+
+    const sourceLog = logs[source.index];
+    const destLog = logs[destination.index];
+
+    // Reorder only within the same thread
+    if (sourceLog.threadId && destLog.threadId && sourceLog.threadId === destLog.threadId) {
+      // Get all logs in this thread from the view (they are sorted by order)
+      const threadLogs = logs.filter(l => l.threadId === sourceLog.threadId);
+
+      // Find local indices within the thread group
+      const sourceLocalIndex = threadLogs.findIndex(l => l.id === sourceLog.id);
+      const destLocalIndex = threadLogs.findIndex(l => l.id === destLog.id);
+
+      if (sourceLocalIndex === -1 || destLocalIndex === -1) return;
+
+      // Reorder array locally
+      const newOrder = Array.from(threadLogs);
+      const [removed] = newOrder.splice(sourceLocalIndex, 1);
+      newOrder.splice(destLocalIndex, 0, removed);
+
+      // Update DB
+      await db.transaction('rw', db.logs, async () => {
+        for (let i = 0; i < newOrder.length; i++) {
+          await db.logs.update(newOrder[i].id!, { threadOrder: i });
+        }
+      });
+    }
+  };
 
   const showUpdateIndicator = needRefresh && updateCheckedManually;
 
@@ -427,26 +565,46 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
         </div>
       </Header>
 
-      <LogList>
-        {logs?.map((log) => (
-          <LogItem
-            key={log.id}
-            to={`/log/${log.id}`}
-            $isActive={Number(id) === log.id}
-            onClick={onCloseMobile}
-          >
-            <LogTitle title={log.title || t.sidebar.untitled}>{log.title || t.sidebar.untitled}</LogTitle>
-            <LogDate>
-              {format(log.createdAt, 'yy.MM.dd HH:mm')}
-              {log.modelId && allModels && (
-                <span style={{ marginLeft: '0.5rem', opacity: 0.7 }}>
-                  • {allModels.find(m => m.id === log.modelId)?.name}
-                </span>
-              )}
-            </LogDate>
-          </LogItem>
-        ))}
-      </LogList>
+      <DragDropContext onDragEnd={onDragEnd}>
+        <Droppable droppableId="logs" isCombineEnabled>
+          {(provided) => (
+            <LogList ref={provided.innerRef} {...provided.droppableProps}>
+              {logs?.map((log, index) => (
+                <Draggable key={log.id} draggableId={String(log.id)} index={index}>
+                  {(provided) => (
+                    <div
+                      ref={provided.innerRef}
+                      {...provided.draggableProps}
+                      {...provided.dragHandleProps}
+                      style={{ ...provided.draggableProps.style, marginBottom: '0.125rem' }}
+                    >
+                      <LogItem
+                        to={`/log/${log.id}`}
+                        $isActive={Number(id) === log.id}
+                        $inThread={(log as any).inThread}
+                        $isThreadStart={(log as any).isThreadStart}
+                        $isThreadEnd={(log as any).isThreadEnd}
+                        onClick={onCloseMobile}
+                      >
+                        <LogTitle title={log.title || t.sidebar.untitled}>{log.title || t.sidebar.untitled}</LogTitle>
+                        <LogDate>
+                          {format(log.createdAt, 'yy.MM.dd HH:mm')}
+                          {log.modelId && allModels && (
+                            <span style={{ marginLeft: '0.5rem', opacity: 0.7 }}>
+                              • {allModels.find(m => m.id === log.modelId)?.name}
+                            </span>
+                          )}
+                        </LogDate>
+                      </LogItem>
+                    </div>
+                  )}
+                </Draggable>
+              ))}
+              {provided.placeholder}
+            </LogList>
+          )}
+        </Droppable>
+      </DragDropContext>
 
       <SyncModal isOpen={isSyncModalOpen} onClose={() => setIsSyncModalOpen(false)} />
       {toastMessage && (
