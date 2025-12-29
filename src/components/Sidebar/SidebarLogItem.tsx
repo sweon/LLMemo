@@ -12,6 +12,7 @@ interface Props {
     formatDate: (date: Date) => string;
     inThread?: boolean;
     untitledText: string;
+    isCombineTarget?: boolean;
 }
 
 export const SidebarLogItem: React.FC<Props> = ({
@@ -22,7 +23,8 @@ export const SidebarLogItem: React.FC<Props> = ({
     modelName,
     formatDate,
     inThread,
-    untitledText
+    untitledText,
+    isCombineTarget
 }) => {
     return (
         <Draggable draggableId={String(log.id)} index={index}>
@@ -34,7 +36,11 @@ export const SidebarLogItem: React.FC<Props> = ({
                     style={{
                         ...provided.draggableProps.style,
                         marginBottom: '2px',
-                        opacity: snapshot.isDragging ? 0.8 : 1
+                        opacity: snapshot.isDragging ? 0.8 : 1,
+                        transition: 'background-color 0.1s ease-out, border-color 0.1s ease-out',
+                        borderRadius: '6px',
+                        border: isCombineTarget ? `2px solid #3b82f6` : '2px solid transparent',
+                        backgroundColor: isCombineTarget ? 'rgba(59, 130, 246, 0.05)' : 'transparent',
                     }}
                 >
                     <LogItemLink

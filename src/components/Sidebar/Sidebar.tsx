@@ -8,7 +8,7 @@ import { useRegisterSW } from 'virtual:pwa-register/react';
 import { Tooltip } from '../UI/Tooltip';
 import { SyncModal } from '../Sync/SyncModal';
 import { DragDropContext, Droppable } from '@hello-pangea/dnd';
-import type { DropResult } from '@hello-pangea/dnd';
+import type { DropResult, DragUpdate } from '@hello-pangea/dnd';
 import { Toast } from '../UI/Toast';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useSearch } from '../../contexts/SearchContext';
@@ -153,6 +153,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
 
   // Collapse state
   const [collapsedThreads, setCollapsedThreads] = useState<Set<string>>(new Set());
+  const [combineTargetId, setCombineTargetId] = useState<string | null>(null);
 
   const toggleThread = (threadId: string) => {
     const newSet = new Set(collapsedThreads);
@@ -353,7 +354,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
   }, [allLogs, allModels, allComments, searchQuery, sortBy]);
 
 
+  const onDragUpdate = (update: DragUpdate) => {
+    if (update.combine) {
+      setCombineTargetId(update.combine.draggableId);
+    } else {
+      setCombineTargetId(null);
+    }
+  };
+
   const onDragEnd = async (result: DropResult) => {
+    setCombineTargetId(null);
     const { source, destination, combine, draggableId } = result;
 
     const updateThreadOrder = async (threadId: string, logIds: number[]) => {
@@ -519,7 +529,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
         </div>
       </Header>
 
-      <DragDropContext onDragEnd={onDragEnd}>
+      <DragDropContext onDragEnd={onDragEnd} onDragUpdate={onDragUpdate}>
         <Droppable droppableId="root" isCombineEnabled type="LOG_LIST">
           {(provided) => (
             <LogList ref={provided.innerRef} {...provided.droppableProps}>
@@ -535,6 +545,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
                       modelName={modelNameMap.get(item.log.modelId!)}
                       formatDate={(d: Date) => format(d, 'yy.MM.dd HH:mm')}
                       untitledText={t.sidebar.untitled}
+                      isCombineTarget={combineTargetId === String(item.log.id)}
                     />
                   );
                 } else {
@@ -551,6 +562,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
                       formatDate={(d: Date) => format(d, 'yy.MM.dd HH:mm')}
                       untitledText={t.sidebar.untitled}
                       onLogClick={onCloseMobile}
+                      isCombineTarget={combineTargetId === `thread-group-${item.threadId}`}
                     />
                   );
                 }

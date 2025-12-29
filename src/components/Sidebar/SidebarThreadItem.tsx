@@ -16,22 +16,31 @@ interface Props {
     formatDate: (d: Date) => string;
     untitledText: string;
     onLogClick?: () => void;
+    isCombineTarget?: boolean;
 }
 
 export const SidebarThreadItem: React.FC<Props> = ({
     threadId, logs, index, collapsed, onToggle,
-    activeLogId, modelMap, formatDate, untitledText, onLogClick
+    activeLogId, modelMap, formatDate, untitledText, onLogClick,
+    isCombineTarget
 }) => {
     const headLog = logs[0];
     const bodyLogs = logs.slice(1);
 
     return (
         <Draggable draggableId={`thread-group-${threadId}`} index={index}>
-            {(provided) => (
+            {(provided, snapshot) => (
                 <div
                     ref={provided.innerRef}
                     {...provided.draggableProps}
-                    style={{ ...provided.draggableProps.style, marginBottom: '4px' }}
+                    style={{
+                        ...provided.draggableProps.style,
+                        marginBottom: '4px',
+                        transition: 'background-color 0.1s ease-out, border-color 0.1s ease-out',
+                        borderRadius: '8px',
+                        border: isCombineTarget ? `2px solid #3b82f6` : '2px solid transparent',
+                        backgroundColor: isCombineTarget ? 'rgba(59, 130, 246, 0.05)' : 'transparent',
+                    }}
                 >
                     {/* Head Log - Acts as drag handle for the group */}
                     <div {...provided.dragHandleProps}>
