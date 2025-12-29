@@ -123,10 +123,6 @@ const LogList = styled.div`
   overflow-y: auto;
   padding: 0.5rem;
   scrollbar-width: thin;
-  
-  /* Force GPU layer for smooth Mac/Mobile repaints */
-  transform: translateZ(0);
-  will-change: transform, scroll-position;
 
   &::-webkit-scrollbar {
     width: 6px;
@@ -140,6 +136,9 @@ const LogList = styled.div`
     background: ${({ theme }) => theme.colors.border};
     border-radius: 10px;
   }
+
+  /* Standard DND area */
+  min-height: 200px;
 `;
 
 
@@ -258,10 +257,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
     }
   };
 
-  const [refreshKey, setRefreshKey] = useState(0);
-
   // Fetch raw data reactively
-  const allLogs = useLiveQuery(() => db.logs.toArray(), [refreshKey]);
+  const allLogs = useLiveQuery(() => db.logs.toArray());
   const allModels = useLiveQuery(() => db.models.toArray());
   const allComments = useLiveQuery(() => db.comments.toArray());
 
@@ -347,34 +344,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
     return flat;
   }, [allLogs, allModels, allComments, searchQuery, sortBy, collapsedThreads]);
 
-  // Aggressive force repaint hook for Mac/Mobile stale UI
-  useEffect(() => {
-    if (!allLogs || !flatItems || flatItems.length === 0) return;
-
-    const list = document.querySelector('[data-rfd-droppable-id="root"]') as HTMLElement;
-    if (list) {
-      // 1. Force layout calculation
-      void list.offsetHeight;
-
-      // 2. Micro-scroll hack (2px for high-DPI)
-      const current = list.scrollTop;
-      list.scrollTop = current + 2;
-
-      // 3. GPU Repaint trigger (opacity toggle + scale)
-      list.style.opacity = '0.999';
-      list.style.transform = 'translateZ(0) scale(1.00001)';
-
-      const timer = setTimeout(() => {
-        list.scrollTop = current;
-        list.style.opacity = '1';
-        list.style.transform = 'translateZ(0)';
-        list.dispatchEvent(new Event('scroll')); // Trick interaction logic
-      }, 50);
-
-      return () => clearTimeout(timer);
-    }
-  }, [allLogs, flatItems, refreshKey]);
-
   const onDragUpdate = (update: DragUpdate) => {
     if (update.combine) {
       setCombineTargetId(update.combine.draggableId);
@@ -387,8 +356,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
     setCombineTargetId(null);
     const { source, destination, combine, draggableId } = result;
 
-    const triggerRefresh = () => {
-      setRefreshKey(prev => prev + 1);
+    const parseLogId = (dId: string) => {
+      if (dId.startsWith('thread-header-')) return Number(dId.replace('thread-header-', ''));
+      if (dId.startsWith('thread-child-')) return Number(dId.replace('thread-child-', ''));
+      return Number(dId);
     };
 
     const updateThreadOrder = async (threadId: string, logIds: number[]) => {
@@ -397,71 +368,61 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
           await db.logs.update(logIds[i], { threadId, threadOrder: i });
         }
       });
-      triggerRefresh();
     };
 
-    const parseLogId = (dId: string) => {
-      if (dId.startsWith('thread-header-')) return Number(dId.replace('thread-header-', ''));
-      if (dId.startsWith('thread-child-')) return Number(dId.replace('thread-child-', ''));
-      return Number(dId);
-    };
+    if (combine) {
+      const sourceId = parseLogId(draggableId);
+      const targetId = parseLogId(combine.draggableId);
+      if (sourceId === targetId) return;
 
-    setTimeout(async () => {
-      if (combine) {
-        const sourceId = parseLogId(draggableId);
-        const targetId = parseLogId(combine.draggableId);
-        if (sourceId === targetId) return;
+      const targetLog = await db.logs.get(targetId);
+      if (!targetLog) return;
 
-        const targetLog = await db.logs.get(targetId);
-        if (!targetLog) return;
-
-        if (targetLog.threadId) {
-          const tid = targetLog.threadId;
-          const members = await db.logs.where('threadId').equals(tid).sortBy('threadOrder');
-          const newIds = members.filter(m => m.id !== sourceId).map(m => m.id!);
-          newIds.push(sourceId);
-          await updateThreadOrder(tid, newIds);
-        } else {
-          const newThreadId = crypto.randomUUID();
-          await updateThreadOrder(newThreadId, [targetId, sourceId]);
-        }
-        return;
-      }
-
-      if (!destination) return;
-      if (source.index === destination.index) return;
-
-      const movedFlatItem = flatItems[source.index];
-      if (!movedFlatItem || movedFlatItem.type === 'thread-header') return;
-
-      const logId = movedFlatItem.log.id!;
-      const nextList = [...flatItems];
-      const [removed] = nextList.splice(source.index, 1);
-      nextList.splice(destination.index, 0, removed);
-
-      const prevItem = nextList[destination.index - 1];
-      const nextItem = nextList[destination.index + 1];
-
-      let targetThreadId: string | undefined = undefined;
-      if (prevItem && (prevItem.type === 'thread-header' || prevItem.type === 'thread-child')) {
-        targetThreadId = prevItem.threadId;
-      } else if (nextItem && nextItem.type === 'thread-child') {
-        targetThreadId = nextItem.threadId;
-      }
-
-      if (targetThreadId) {
-        await db.logs.update(logId, { threadId: targetThreadId });
-        const members = nextList.filter(item =>
-          (item.type === 'thread-header' || item.type === 'thread-child') &&
-          ('threadId' in item && item.threadId === targetThreadId)
-        );
-        const ids = members.map(m => m.log.id!);
-        await updateThreadOrder(targetThreadId, ids);
+      if (targetLog.threadId) {
+        const tid = targetLog.threadId;
+        const members = await db.logs.where('threadId').equals(tid).sortBy('threadOrder');
+        const newIds = members.filter(m => m.id !== sourceId).map(m => m.id!);
+        newIds.push(sourceId);
+        await updateThreadOrder(tid, newIds);
       } else {
-        await db.logs.update(logId, { threadId: undefined, threadOrder: undefined });
-        triggerRefresh();
+        const newThreadId = crypto.randomUUID();
+        await updateThreadOrder(newThreadId, [targetId, sourceId]);
       }
-    }, 50);
+      return;
+    }
+
+    if (!destination) return;
+    if (source.index === destination.index) return;
+
+    const movedFlatItem = flatItems[source.index];
+    if (!movedFlatItem || movedFlatItem.type === 'thread-header') return;
+
+    const logId = movedFlatItem.log.id!;
+    const nextList = [...flatItems];
+    const [removed] = nextList.splice(source.index, 1);
+    nextList.splice(destination.index, 0, removed);
+
+    const prevItem = nextList[destination.index - 1];
+    const nextItem = nextList[destination.index + 1];
+
+    let targetThreadId: string | undefined = undefined;
+    if (prevItem && (prevItem.type === 'thread-header' || prevItem.type === 'thread-child')) {
+      targetThreadId = prevItem.threadId;
+    } else if (nextItem && nextItem.type === 'thread-child') {
+      targetThreadId = nextItem.threadId;
+    }
+
+    if (targetThreadId) {
+      await db.logs.update(logId, { threadId: targetThreadId });
+      const members = nextList.filter(item =>
+        (item.type === 'thread-header' || item.type === 'thread-child') &&
+        ('threadId' in item && item.threadId === targetThreadId)
+      );
+      const ids = members.map(m => m.log.id!);
+      await updateThreadOrder(targetThreadId, ids);
+    } else {
+      await db.logs.update(logId, { threadId: undefined, threadOrder: undefined });
+    }
   };
 
   const showUpdateIndicator = needRefresh && updateCheckedManually;
