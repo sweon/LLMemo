@@ -20,7 +20,9 @@ export const translations = {
             update_found: "Update found! Click again to install.",
             up_to_date: "You are up to date!",
             check_failed: "Check failed. Try again.",
-            pwa_not_supported: "PWA not supported"
+            pwa_not_supported: "PWA not supported",
+            collapse: "Collapse",
+            more_logs: "more"
         },
         settings: {
             title: "Settings",
@@ -148,7 +150,9 @@ export const translations = {
             update_found: "업데이트가 발견되었습니다! 다시 클릭하여 설치하세요.",
             up_to_date: "최신 상태입니다!",
             check_failed: "확인 실패. 다시 시도하세요.",
-            pwa_not_supported: "PWA를 지원하지 않습니다."
+            pwa_not_supported: "PWA를 지원하지 않습니다.",
+            collapse: "접기",
+            more_logs: "개 더보기"
         },
         settings: {
             title: "설정",

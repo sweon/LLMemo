@@ -561,6 +561,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
                       untitledText={t.sidebar.untitled}
                       onLogClick={onCloseMobile}
                       isCombineTarget={combineTargetId === `thread-header-${logId}`}
+                      t={t}
                     />
                   );
                 } else {

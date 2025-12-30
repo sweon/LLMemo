@@ -4,6 +4,8 @@ import type { Log } from '../../db';
 import { LogItemLink, LogTitle, LogDate, ThreadToggleBtn } from './itemStyles';
 import { FiCornerDownRight } from 'react-icons/fi';
 
+import type { TranslationKeys } from '../../translations';
+
 interface Props {
     threadId: string;
     logs: Log[];
@@ -16,12 +18,13 @@ interface Props {
     untitledText: string;
     onLogClick?: () => void;
     isCombineTarget?: boolean;
+    t: TranslationKeys;
 }
 
 export const SidebarThreadItem: React.FC<Props> = ({
     threadId, logs, index, collapsed, onToggle,
     activeLogId, modelMap, formatDate, untitledText, onLogClick,
-    isCombineTarget
+    isCombineTarget, t
 }) => {
     const headLog = logs[0];
     const bodyLogs = logs.slice(1);
@@ -68,7 +71,7 @@ export const SidebarThreadItem: React.FC<Props> = ({
                             <div style={{ paddingLeft: '0.5rem' }}>
                                 <ThreadToggleBtn onClick={() => onToggle(threadId)}>
                                     <FiCornerDownRight />
-                                    {collapsed ? `${bodyLogs.length} more` : 'Collapse'}
+                                    {collapsed ? `${bodyLogs.length}${t.sidebar.more_logs}` : t.sidebar.collapse}
                                 </ThreadToggleBtn>
                             </div>
                         )}
