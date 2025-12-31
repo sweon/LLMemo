@@ -14,15 +14,20 @@ interface TouchDelayDraggableProps extends DraggableProps {
  */
 export const TouchDelayDraggable: React.FC<TouchDelayDraggableProps> = ({
     children,
-    touchDelay = 800, // Increased from 500ms to 800ms for less sensitive drag on Android
+    touchDelay = 800,
     ...draggableProps
 }) => {
     const touchTimerRef = useRef<number | null>(null);
     const [isDragDisabled, setIsDragDisabled] = useState(false);
-    const touchStartTimeRef = useRef<number>(0);
+    const touchStartPosRef = useRef<{ x: number; y: number } | null>(null);
+    const hasMovedRef = useRef(false);
 
-    const handleTouchStart = () => {
-        touchStartTimeRef.current = Date.now();
+    const handleTouchStart = (e: React.TouchEvent) => {
+        const touch = e.touches[0];
+        touchStartPosRef.current = { x: touch.clientX, y: touch.clientY };
+        hasMovedRef.current = false;
+
+        // Immediately disable drag on touch start
         setIsDragDisabled(true);
 
         // Clear any existing timer
@@ -30,30 +35,24 @@ export const TouchDelayDraggable: React.FC<TouchDelayDraggableProps> = ({
             window.clearTimeout(touchTimerRef.current);
         }
 
-        // Enable drag after delay
+        // Enable drag after delay only if we haven't moved
         touchTimerRef.current = window.setTimeout(() => {
-            setIsDragDisabled(false);
+            if (!hasMovedRef.current) {
+                setIsDragDisabled(false);
+            }
         }, touchDelay);
     };
 
-    const handleTouchEnd = () => {
-        // Clear the timer if touch ends before delay
-        if (touchTimerRef.current) {
-            window.clearTimeout(touchTimerRef.current);
-            touchTimerRef.current = null;
-        }
+    const handleTouchMove = (e: React.TouchEvent) => {
+        if (!touchStartPosRef.current || hasMovedRef.current) return;
 
-        // Re-enable drag for next touch
-        setTimeout(() => {
-            setIsDragDisabled(false);
-        }, 50);
-    };
+        const touch = e.touches[0];
+        const moveX = Math.abs(touch.clientX - touchStartPosRef.current.x);
+        const moveY = Math.abs(touch.clientY - touchStartPosRef.current.y);
 
-    const handleTouchMove = () => {
-        const touchDuration = Date.now() - touchStartTimeRef.current;
-
-        // If user starts moving before delay, cancel drag and allow scroll
-        if (touchDuration < touchDelay) {
+        // If moved more than 10px, it's a scroll/move, not a hold
+        if (moveX > 10 || moveY > 10) {
+            hasMovedRef.current = true;
             if (touchTimerRef.current) {
                 window.clearTimeout(touchTimerRef.current);
                 touchTimerRef.current = null;
@@ -62,13 +61,28 @@ export const TouchDelayDraggable: React.FC<TouchDelayDraggableProps> = ({
         }
     };
 
+    const handleTouchEnd = () => {
+        if (touchTimerRef.current) {
+            window.clearTimeout(touchTimerRef.current);
+            touchTimerRef.current = null;
+        }
+
+        // Use a short timeout to re-enable for next interaction 
+        // to avoid staying disabled if the state update is slow
+        setTimeout(() => {
+            setIsDragDisabled(false);
+            touchStartPosRef.current = null;
+            hasMovedRef.current = false;
+        }, 100);
+    };
+
     return (
         <Draggable {...draggableProps} isDragDisabled={isDragDisabled}>
             {(provided, snapshot) => (
                 <div
                     onTouchStart={handleTouchStart}
-                    onTouchEnd={handleTouchEnd}
                     onTouchMove={handleTouchMove}
+                    onTouchEnd={handleTouchEnd}
                     style={{ touchAction: 'pan-y' }}
                 >
                     {children(provided, snapshot)}
