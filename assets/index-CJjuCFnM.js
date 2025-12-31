@@ -621,88 +621,88 @@ ${bt.current.stack}
         background: ${({theme:e})=>e.colors.surface};
     }
 `,Z3=({log:e,index:t,isActive:n,onClick:r,modelName:a,formatDate:s,inThread:f,untitledText:y,isCombineTarget:m})=>{const v=f?`thread-child-${e.id}`:String(e.id);return Ce.jsx(Vy,{draggableId:v,index:t,children:(D,T)=>Ce.jsx("div",{ref:D.innerRef,...D.draggableProps,...D.dragHandleProps,style:{...D.draggableProps.style,marginBottom:"2px",opacity:T.isDragging?.8:1,transition:"background-color 0.1s ease-out, border-color 0.1s ease-out",borderRadius:"6px",border:m?"2px solid #3b82f6":"2px solid transparent",backgroundColor:m?"rgba(59, 130, 246, 0.05)":"transparent"},children:Ce.jsxs(nS,{to:`/log/${e.id}`,$isActive:n,$inThread:f,onClick:r,children:[Ce.jsx(rS,{title:e.title||y,children:e.title||y}),Ce.jsxs(iS,{children:[s(e.createdAt),a&&Ce.jsxs("span",{style:{marginLeft:"0.5rem",opacity:.7},children:["• ",a]})]})]})})})},WL=({threadId:e,logs:t,index:n,collapsed:r,onToggle:a,activeLogId:s,modelMap:f,formatDate:y,untitledText:m,onLogClick:v,isCombineTarget:D,t:T})=>{const _=t[0],z=t.slice(1);return Ce.jsx(Vy,{draggableId:`thread-header-${_.id}`,index:n,children:(X,$)=>Ce.jsx("div",{ref:X.innerRef,...X.draggableProps,style:{...X.draggableProps.style,marginBottom:"4px",opacity:$.isDragging?.8:1,transition:"background-color 0.1s ease-out, border-color 0.1s ease-out",borderRadius:"8px",border:D?"2px solid #3b82f6":"2px solid transparent",backgroundColor:D?"rgba(59, 130, 246, 0.05)":"transparent"},children:Ce.jsxs("div",{...X.dragHandleProps,style:{position:"relative"},children:[Ce.jsxs(nS,{to:`/log/${_.id}`,$isActive:s===_.id,$inThread:!1,onClick:v,children:[Ce.jsx(rS,{title:_.title||m,children:_.title||m}),Ce.jsxs(iS,{children:[y(_.createdAt),_.modelId&&Ce.jsxs("span",{style:{marginLeft:"0.5rem",opacity:.7},children:["• ",f.get(_.modelId)]})]})]}),z.length>0&&Ce.jsx("div",{style:{paddingLeft:"0.5rem"},children:Ce.jsxs(GL,{onClick:()=>a(e),children:[Ce.jsx(OD,{}),r?T.sidebar.more_logs.replace("{count}",String(z.length)):T.sidebar.collapse]})})]})})})},YL=sn.div`
-display: flex;
-flex - direction: column;
-height: 100 %;
-
-@keyframes spin {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  
+  @keyframes spin {
     from {
-    transform: rotate(0deg);
-  }
+      transform: rotate(0deg);
+    }
     to {
-    transform: rotate(360deg);
+      transform: rotate(360deg);
+    }
   }
-}
-
+  
   .spin {
-  animation: spin 1s linear infinite;
-}
+    animation: spin 1s linear infinite;
+  }
 `,VL=sn.div`
-padding: 0.75rem 1rem;
-border - bottom: 1px solid ${({theme:e})=>e.colors.border};
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid ${({theme:e})=>e.colors.border};
 `,XL=sn.div`
-position: relative;
-margin - bottom: 0.5rem;
+  position: relative;
+  margin-bottom: 0.5rem;
 `,jL=sn(YD)`
-position: absolute;
-left: 10px;
-top: 50 %;
-transform: translateY(-50 %);
-color: ${({theme:e})=>e.colors.textSecondary};
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: ${({theme:e})=>e.colors.textSecondary};
 `,ZL=sn.input`
-width: 100 %;
-padding: 0.5rem 2rem 0.5rem 2rem;
-border - radius: 6px;
-border: 1px solid ${({theme:e})=>e.colors.border};
-background: ${({theme:e})=>e.colors.background};
-color: ${({theme:e})=>e.colors.text};
+  width: 100%;
+  padding: 0.5rem 2rem 0.5rem 2rem;
+  border-radius: 6px;
+  border: 1px solid ${({theme:e})=>e.colors.border};
+  background: ${({theme:e})=>e.colors.background};
+  color: ${({theme:e})=>e.colors.text};
   
   &:focus {
-  outline: none;
-  border - color: ${({theme:e})=>e.colors.primary};
-}
+    outline: none;
+    border-color: ${({theme:e})=>e.colors.primary};
+  }
 `,KL=sn.button`
-position: absolute;
-right: 8px;
-top: 50 %;
-transform: translateY(-50 %);
-background: transparent;
-border: none;
-color: ${({theme:e})=>e.colors.textSecondary};
-cursor: pointer;
-display: flex;
-align - items: center;
-justify - content: center;
-padding: 4px;
-border - radius: 50 %;
-
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: ${({theme:e})=>e.colors.textSecondary};
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 50%;
+  
   &:hover {
-  color: ${({theme:e})=>e.colors.text};
-  background - color: ${({theme:e})=>e.colors.surface};
-}
+    color: ${({theme:e})=>e.colors.text};
+    background-color: ${({theme:e})=>e.colors.surface};
+  }
 `,QL=sn.button`
-display: flex;
-align - items: center;
-justify - content: center;
-gap: 0.25rem;
-padding: 0.5rem 0.5rem;
-border - radius: 6px;
-border: none;
-cursor: pointer;
-background: ${({theme:e})=>e.colors.primary};
-color: white;
-font - weight: 500;
-white - space: nowrap;
-
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  padding: 0.5rem 0.5rem;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  background: ${({theme:e})=>e.colors.primary};
+  color: white;
+  font-weight: 500;
+  white-space: nowrap;
+  
   &:hover {
-  background: ${({theme:e})=>e.colors.primaryHover};
-}
+    background: ${({theme:e})=>e.colors.primaryHover};
+  }
 `,qL=sn.div`
-display: flex;
-align - items: center;
-justify - content: space - between;
-gap: 0.25rem;
-margin - bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.25rem;
+  margin-bottom: 0.5rem;
 `,JL=sn.div`
   flex: 1;
   overflow-y: auto;
@@ -729,20 +729,20 @@ margin - bottom: 0.5rem;
   /* Standard DND area */
   min-height: 200px;
 `,Jh=sn.button`
-background: transparent;
-border: none;
-color: ${({theme:e})=>e.colors.textSecondary};
-cursor: pointer;
-padding: 0.25rem;
-border - radius: 6px;
-display: flex;
-align - items: center;
-justify - content: center;
-
+  background: transparent;
+  border: none;
+  color: ${({theme:e})=>e.colors.textSecondary};
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
   &:hover {
-  background: ${({theme:e})=>e.colors.border};
-  color: ${({theme:e})=>e.colors.text};
-}
+    background: ${({theme:e})=>e.colors.border};
+    color: ${({theme:e})=>e.colors.text};
+  }
 `,$L=({onCloseMobile:e})=>{const{searchQuery:t,setSearchQuery:n}=s8(),{t:r}=Ad(),[a,s]=Xe.useState("date-desc"),[f,y]=Xe.useState(new Set),[m,v]=Xe.useState(null),D=Ee=>{const be=new Set(f);be.has(Ee)?be.delete(Ee):be.add(Ee),y(be)},{mode:T,toggleTheme:_,increaseFontSize:z,decreaseFontSize:X}=l8(),$=F1(),{id:ne}=Aw(),[se,te]=Xe.useState(!1),[oe,Se]=Xe.useState(!1),[De,xe]=Xe.useState(!1),[ye,Ze]=Xe.useState(null),Pe=Xe.useRef(!1),{needRefresh:[tt],updateServiceWorker:nt}=JD({onRegistered(Ee){console.log("SW Registered: "+Ee)},onRegisterError(Ee){console.log("SW registration error",Ee)}});Xe.useEffect(()=>{Pe.current=tt},[tt]);const qe=async()=>{if(!De&&(xe(!0),Se(!0),tt)){Se(!1),Ze(r.sidebar.update_found);return}if(tt){Ze(r.sidebar.install_update),setTimeout(()=>{nt(!0),setTimeout(()=>window.location.reload(),3e3)},500);return}if(!(oe&&De))if(Se(!0),"serviceWorker"in navigator)try{await(await navigator.serviceWorker.ready).update(),setTimeout(()=>{Se(!1),xe(!0),Pe.current?Ze(r.sidebar.update_found):Ze(r.sidebar.up_to_date)},1500)}catch(Ee){console.error("Error checking for updates:",Ee),Se(!1),Ze(r.sidebar.check_failed)}else Se(!1),Ze(r.sidebar.pwa_not_supported)},Et=Uf(()=>er.logs.toArray()),St=Uf(()=>er.models.toArray()),he=Uf(()=>er.comments.toArray()),pe=Un.useMemo(()=>{const Ee=new Map;return St?.forEach(be=>Ee.set(be.id,be.name)),Ee},[St]),Re=Un.useMemo(()=>{if(!Et||!St)return[];let Ee=[...Et];if(t){const Ut=t.toLowerCase();if(Ut.startsWith("tag:")){const qt=Ut.substring(4).trim();Ee=Ee.filter(Rt=>Rt.tags.some(Tn=>Tn.toLowerCase().includes(qt))||Rt.modelId&&St.find(Tn=>Tn.id===Rt.modelId)?.name.toLowerCase().includes(qt))}else Ee=Ee.filter(qt=>qt.title.toLowerCase().includes(Ut)||qt.tags.some(Rt=>Rt.toLowerCase().includes(Ut)))}const be=new Map;St.forEach(Ut=>be.set(Ut.id,Ut.order??999));const V=new Map,$e=[];Ee.forEach(Ut=>{Ut.threadId?(V.has(Ut.threadId)||V.set(Ut.threadId,[]),V.get(Ut.threadId).push(Ut)):$e.push(Ut)}),V.forEach(Ut=>Ut.sort((qt,Rt)=>(qt.threadOrder??0)-(Rt.threadOrder??0)));const Ot=[...$e.map(Ut=>({type:"single",log:Ut,lastDate:Ut.createdAt})),...Array.from(V.entries()).map(([Ut,qt])=>{const Rt=qt.reduce((Tn,on)=>new Date(Tn.createdAt)>new Date(on.createdAt)?Tn:on,qt[0]);return{type:"thread",logs:qt,threadId:Ut,lastDate:Rt.createdAt}})];Ot.sort((Ut,qt)=>{if(a==="date-desc")return new Date(qt.lastDate).getTime()-new Date(Ut.lastDate).getTime();if(a==="date-asc")return new Date(Ut.lastDate).getTime()-new Date(qt.lastDate).getTime();if(a==="model-desc"||a==="model-asc"){const Rt=Ut.type==="single"?Ut.log:Ut.logs[0],Tn=qt.type==="single"?qt.log:qt.logs[0],on=Rt.modelId?be.get(Rt.modelId)??999:999,rn=Tn.modelId?be.get(Tn.modelId)??999:999;return a==="model-desc"?on!==rn?on-rn:new Date(qt.lastDate).getTime()-new Date(Ut.lastDate).getTime():on!==rn?rn-on:new Date(qt.lastDate).getTime()-new Date(Ut.lastDate).getTime()}return 0});const bt=[];return Ot.forEach(Ut=>{if(Ut.type==="single")bt.push({type:"single",log:Ut.log});else{const qt=Ut.logs[0];bt.push({type:"thread-header",log:qt,threadId:Ut.threadId,threadLogs:Ut.logs}),f.has(Ut.threadId)&&Ut.logs.slice(1).forEach(Rt=>{bt.push({type:"thread-child",log:Rt,threadId:Ut.threadId})})}}),bt},[Et,St,he,t,a,f]),Mt=Ee=>{Ee.combine?v(Ee.combine.draggableId):v(null)},en=async Ee=>{v(null);const{source:be,destination:V,combine:$e,draggableId:Ot}=Ee,bt=ln=>ln.startsWith("thread-header-")?Number(ln.replace("thread-header-","")):ln.startsWith("thread-child-")?Number(ln.replace("thread-child-","")):Number(ln),Ut=async(ln,Rr)=>{await er.transaction("rw",er.logs,async()=>{for(let Hn=0;Hn<Rr.length;Hn++)await er.logs.update(Rr[Hn],{threadId:ln,threadOrder:Hn})})};if($e){const ln=bt(Ot),Rr=bt($e.draggableId);if(ln===Rr)return;const Hn=await er.logs.get(Rr);if(!Hn)return;if(Hn.threadId){const Rn=Hn.threadId,Cn=(await er.logs.where("threadId").equals(Rn).sortBy("threadOrder")).filter(Jt=>Jt.id!==ln).map(Jt=>Jt.id);Cn.push(ln),await Ut(Rn,Cn)}else{const Rn=crypto.randomUUID();await Ut(Rn,[Rr,ln])}return}if(!V||be.index===V.index)return;const qt=Re[be.index];if(!qt||qt.type==="thread-header")return;const Rt=qt.log.id,Tn=[...Re],[on]=Tn.splice(be.index,1);Tn.splice(V.index,0,on);const rn=Tn[V.index-1],Xt=Tn[V.index+1];let ur;if(rn&&(rn.type==="thread-header"||rn.type==="thread-child")?ur=rn.threadId:Xt&&Xt.type==="thread-child"&&(ur=Xt.threadId),ur){await er.logs.update(Rt,{threadId:ur});const Rr=Tn.filter(Hn=>(Hn.type==="thread-header"||Hn.type==="thread-child")&&"threadId"in Hn&&Hn.threadId===ur).map(Hn=>Hn.log.id);await Ut(ur,Rr)}else await er.logs.update(Rt,{threadId:void 0,threadOrder:void 0})},Me=tt&&De;return Ce.jsxs(YL,{children:[Ce.jsxs(VL,{children:[Ce.jsxs(qL,{children:[Ce.jsxs(QL,{onClick:()=>{$("/new"),e()},children:[Ce.jsx(fp,{})," ",r.sidebar.new]}),Ce.jsxs("div",{style:{display:"flex",gap:"0rem",alignItems:"center"},children:[Ce.jsx(Qh,{content:r.sidebar.decrease_font,children:Ce.jsx(Jh,{onClick:X,children:Ce.jsx(UD,{size:16})})}),Ce.jsx(Qh,{content:r.sidebar.increase_font,children:Ce.jsx(Jh,{onClick:z,children:Ce.jsx(fp,{size:16})})}),Ce.jsx(Qh,{content:r.sidebar.sync_data,children:Ce.jsx(Jh,{onClick:()=>te(!0),children:Ce.jsx(WD,{size:18})})}),Ce.jsx(Qh,{content:Me?r.sidebar.install_update:r.sidebar.check_updates,children:Ce.jsxs(Jh,{onClick:qe,style:{position:"relative"},children:[Ce.jsx(RD,{size:18,className:oe?"spin":""}),Me&&Ce.jsx("span",{style:{position:"absolute",top:"4px",right:"4px",width:"8px",height:"8px",borderRadius:"50%",backgroundColor:"#ef4444",border:"1px solid white"}})]})}),Ce.jsx(Qh,{content:T==="light"?r.sidebar.switch_dark:r.sidebar.switch_light,children:Ce.jsx(Jh,{onClick:_,children:T==="light"?Ce.jsx(GD,{size:18}):Ce.jsx(XD,{size:18})})}),Ce.jsx(Qh,{content:r.sidebar.settings,children:Ce.jsx(Jh,{onClick:()=>$("/settings"),children:Ce.jsx(VD,{size:18})})})]})]}),Ce.jsxs(XL,{children:[Ce.jsx(jL,{size:16}),Ce.jsx(ZL,{placeholder:r.sidebar.search,value:t,onChange:Ee=>n(Ee.target.value)}),t&&Ce.jsx(KL,{onClick:()=>n(""),children:Ce.jsx(xy,{size:14})})]}),Ce.jsx("div",{style:{display:"flex",gap:"0.5rem"},children:Ce.jsxs("select",{value:a,onChange:Ee=>s(Ee.target.value),style:{flex:1,padding:"0.5rem",borderRadius:"6px",border:"1px solid #e5e7eb",background:T==="dark"?"#1e293b":"#fff",color:T==="dark"?"#f8fafc":"#111827"},children:[Ce.jsx("option",{value:"date-desc",children:r.sidebar.newest}),Ce.jsx("option",{value:"date-asc",children:r.sidebar.oldest}),Ce.jsx("option",{value:"model-desc",children:r.sidebar.model_newest}),Ce.jsx("option",{value:"model-asc",children:r.sidebar.model_oldest}),Ce.jsx("option",{value:"comment-desc",children:r.sidebar.last_commented})]})})]}),Ce.jsx(U7,{onDragEnd:en,onDragUpdate:Mt,children:Ce.jsx(Q7,{droppableId:"root",isCombineEnabled:!0,type:"LOG_LIST",children:Ee=>Ce.jsxs(JL,{ref:Ee.innerRef,...Ee.droppableProps,children:[Re.map((be,V)=>{if(be.type==="single"){const $e=be.log.id;return Ce.jsx(Z3,{log:be.log,index:V,isActive:Number(ne)===$e,onClick:e,modelName:pe.get(be.log.modelId),formatDate:Ot=>m1(Ot,"yy.MM.dd HH:mm"),untitledText:r.sidebar.untitled,isCombineTarget:m===String($e)},$e)}else if(be.type==="thread-header"){const $e=be.log.id;return Ce.jsx(WL,{threadId:be.threadId,logs:be.threadLogs,index:V,collapsed:!f.has(be.threadId),onToggle:D,activeLogId:Number(ne),modelMap:pe,formatDate:Ot=>m1(Ot,"yy.MM.dd HH:mm"),untitledText:r.sidebar.untitled,onLogClick:e,isCombineTarget:m===`thread - header - ${$e} `,t:r},`header - ${be.threadId} `)}else{const $e=be.log.id;return Ce.jsx(Z3,{log:be.log,index:V,isActive:Number(ne)===$e,onClick:e,modelName:pe.get(be.log.modelId),formatDate:Ot=>m1(Ot,"yy.MM.dd HH:mm"),untitledText:r.sidebar.untitled,inThread:!0,isCombineTarget:m===`thread - child - ${$e} `},$e)}}),Ee.placeholder]})})}),Ce.jsx(yM,{isOpen:se,onClose:()=>te(!1)}),ye&&Ce.jsx(q7,{message:ye,onClose:()=>Ze(null)})]})},eB=sn.div`
   display: flex;
   height: 100vh;
