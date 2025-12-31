@@ -19,103 +19,103 @@ import { SidebarLogItem } from './SidebarLogItem';
 import { SidebarThreadItem } from './SidebarThreadItem';
 
 const SidebarContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  height: 100%;
+display: flex;
+flex - direction: column;
+height: 100 %;
 
-  @keyframes spin {
+@keyframes spin {
     from {
-      transform: rotate(0deg);
-    }
-    to {
-      transform: rotate(360deg);
-    }
+    transform: rotate(0deg);
   }
+    to {
+    transform: rotate(360deg);
+  }
+}
 
   .spin {
-    animation: spin 1s linear infinite;
-  }
+  animation: spin 1s linear infinite;
+}
 `;
 
 const Header = styled.div`
-  padding: 0.75rem 1rem;
-  border-bottom: 1px solid ${({ theme }) => theme.colors.border};
+padding: 0.75rem 1rem;
+border - bottom: 1px solid ${({ theme }) => theme.colors.border};
 `;
 
 const SearchInputWrapper = styled.div`
-  position: relative;
-  margin-bottom: 0.5rem;
+position: relative;
+margin - bottom: 0.5rem;
 `;
 
 const SearchIcon = styled(FiSearch)`
-  position: absolute;
-  left: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: ${({ theme }) => theme.colors.textSecondary};
+position: absolute;
+left: 10px;
+top: 50 %;
+transform: translateY(-50 %);
+color: ${({ theme }) => theme.colors.textSecondary};
 `;
 
 const SearchInput = styled.input`
-  width: 100%;
-  padding: 0.5rem 2rem 0.5rem 2rem;
-  border-radius: 6px;
-  border: 1px solid ${({ theme }) => theme.colors.border};
-  background: ${({ theme }) => theme.colors.background};
-  color: ${({ theme }) => theme.colors.text};
+width: 100 %;
+padding: 0.5rem 2rem 0.5rem 2rem;
+border - radius: 6px;
+border: 1px solid ${({ theme }) => theme.colors.border};
+background: ${({ theme }) => theme.colors.background};
+color: ${({ theme }) => theme.colors.text};
   
   &:focus {
-    outline: none;
-    border-color: ${({ theme }) => theme.colors.primary};
-  }
+  outline: none;
+  border - color: ${({ theme }) => theme.colors.primary};
+}
 `;
 
 const ClearButton = styled.button`
-  position: absolute;
-  right: 8px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: transparent;
-  border: none;
-  color: ${({ theme }) => theme.colors.textSecondary};
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 4px;
-  border-radius: 50%;
+position: absolute;
+right: 8px;
+top: 50 %;
+transform: translateY(-50 %);
+background: transparent;
+border: none;
+color: ${({ theme }) => theme.colors.textSecondary};
+cursor: pointer;
+display: flex;
+align - items: center;
+justify - content: center;
+padding: 4px;
+border - radius: 50 %;
 
   &:hover {
-    color: ${({ theme }) => theme.colors.text};
-    background-color: ${({ theme }) => theme.colors.surface};
-  }
+  color: ${({ theme }) => theme.colors.text};
+  background - color: ${({ theme }) => theme.colors.surface};
+}
 `;
 
 
 const Button = styled.button`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.25rem;
-  padding: 0.5rem 0.5rem;
-  border-radius: 6px;
-  border: none;
-  cursor: pointer;
-  background: ${({ theme }) => theme.colors.primary};
-  color: white;
-  font-weight: 500;
-  white-space: nowrap;
+display: flex;
+align - items: center;
+justify - content: center;
+gap: 0.25rem;
+padding: 0.5rem 0.5rem;
+border - radius: 6px;
+border: none;
+cursor: pointer;
+background: ${({ theme }) => theme.colors.primary};
+color: white;
+font - weight: 500;
+white - space: nowrap;
 
   &:hover {
-    background: ${({ theme }) => theme.colors.primaryHover};
-  }
+  background: ${({ theme }) => theme.colors.primaryHover};
+}
 `;
 
 const TopActions = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.25rem;
-  margin-bottom: 0.5rem;
+display: flex;
+align - items: center;
+justify - content: space - between;
+gap: 0.25rem;
+margin - bottom: 0.5rem;
 `;
 
 const LogList = styled.div`
@@ -123,6 +123,10 @@ const LogList = styled.div`
   overflow-y: auto;
   padding: 0.5rem;
   scrollbar-width: thin;
+
+  /* Improve drag behavior on touch devices */
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
 
   &::-webkit-scrollbar {
     width: 6px;
@@ -144,20 +148,20 @@ const LogList = styled.div`
 
 
 const IconButton = styled.button`
-  background: transparent;
-  border: none;
-  color: ${({ theme }) => theme.colors.textSecondary};
-  cursor: pointer;
-  padding: 0.25rem;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+background: transparent;
+border: none;
+color: ${({ theme }) => theme.colors.textSecondary};
+cursor: pointer;
+padding: 0.25rem;
+border - radius: 6px;
+display: flex;
+align - items: center;
+justify - content: center;
 
   &:hover {
-    background: ${({ theme }) => theme.colors.border};
-    color: ${({ theme }) => theme.colors.text};
-  }
+  background: ${({ theme }) => theme.colors.border};
+  color: ${({ theme }) => theme.colors.text};
+}
 `;
 
 interface SidebarProps {
@@ -556,7 +560,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
         </div>
       </Header>
 
-      <DragDropContext onDragEnd={onDragEnd} onDragUpdate={onDragUpdate}>
+      <DragDropContext
+        onDragEnd={onDragEnd}
+        onDragUpdate={onDragUpdate}
+      >
         <Droppable droppableId="root" isCombineEnabled type="LOG_LIST">
           {(provided) => (
             <LogList ref={provided.innerRef} {...provided.droppableProps}>
@@ -580,7 +587,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
                   const logId = item.log.id!;
                   return (
                     <SidebarThreadItem
-                      key={`header-${item.threadId}`}
+                      key={`header - ${item.threadId} `}
                       threadId={item.threadId}
                       logs={item.threadLogs}
                       index={index}
@@ -591,7 +598,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
                       formatDate={(d: Date) => format(d, 'yy.MM.dd HH:mm')}
                       untitledText={t.sidebar.untitled}
                       onLogClick={onCloseMobile}
-                      isCombineTarget={combineTargetId === `thread-header-${logId}`}
+                      isCombineTarget={combineTargetId === `thread - header - ${logId} `}
                       t={t}
                     />
                   );
@@ -609,7 +616,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
                       formatDate={(d: Date) => format(d, 'yy.MM.dd HH:mm')}
                       untitledText={t.sidebar.untitled}
                       inThread={true}
-                      isCombineTarget={combineTargetId === `thread-child-${logId}`}
+                      isCombineTarget={combineTargetId === `thread - child - ${logId} `}
                     />
                   );
                 }
