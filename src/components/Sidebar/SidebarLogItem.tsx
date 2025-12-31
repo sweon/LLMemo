@@ -1,7 +1,7 @@
 import React from 'react';
-import { Draggable } from '@hello-pangea/dnd';
 import type { Log } from '../../db';
 import { LogItemLink, LogTitle, LogDate } from './itemStyles';
+import { TouchDelayDraggable } from './TouchDelayDraggable';
 
 interface Props {
     log: Log;
@@ -29,8 +29,8 @@ export const SidebarLogItem: React.FC<Props> = ({
     const draggableId = inThread ? `thread-child-${log.id}` : String(log.id);
 
     return (
-        <Draggable draggableId={draggableId} index={index}>
-            {(provided, snapshot) => (
+        <TouchDelayDraggable draggableId={draggableId} index={index}>
+            {(provided: any, snapshot: any) => (
                 <div
                     ref={provided.innerRef}
                     {...provided.draggableProps}
@@ -65,6 +65,6 @@ export const SidebarLogItem: React.FC<Props> = ({
                     </LogItemLink>
                 </div>
             )}
-        </Draggable>
+        </TouchDelayDraggable>
     );
 };

@@ -1,9 +1,8 @@
 import React from 'react';
-import { Draggable } from '@hello-pangea/dnd';
 import type { Log } from '../../db';
 import { LogItemLink, LogTitle, LogDate, ThreadToggleBtn } from './itemStyles';
 import { FiCornerDownRight } from 'react-icons/fi';
-
+import { TouchDelayDraggable } from './TouchDelayDraggable';
 import type { TranslationKeys } from '../../translations';
 
 interface Props {
@@ -30,8 +29,8 @@ export const SidebarThreadItem: React.FC<Props> = ({
     const bodyLogs = logs.slice(1);
 
     return (
-        <Draggable draggableId={`thread-header-${headLog.id}`} index={index}>
-            {(provided, snapshot) => (
+        <TouchDelayDraggable draggableId={`thread-header-${headLog.id}`} index={index}>
+            {(provided: any, snapshot: any) => (
                 <div
                     ref={provided.innerRef}
                     {...provided.draggableProps}
@@ -78,6 +77,6 @@ export const SidebarThreadItem: React.FC<Props> = ({
                     </div>
                 </div>
             )}
-        </Draggable>
+        </TouchDelayDraggable>
     );
 };
