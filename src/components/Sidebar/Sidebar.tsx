@@ -450,25 +450,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
     nextList.splice(destination.index, 0, removed);
 
     const prevItem = nextList[destination.index - 1];
-    const nextItem = nextList[destination.index + 1];
 
     // Determine if the dropped position should join a thread
     let targetThreadId: string | undefined = undefined;
 
-    // Case 1: Dropped directly after a thread header AND before that thread's child
-    if (
-      prevItem && prevItem.type === 'thread-header' &&
-      nextItem && nextItem.type === 'thread-child' &&
-      nextItem.threadId === prevItem.threadId
-    ) {
+    // Case 1: Dropped directly after a thread header
+    if (prevItem && prevItem.type === 'thread-header') {
       targetThreadId = prevItem.threadId;
     }
-    // Case 2: Dropped between two children of the same thread
-    else if (
-      prevItem && prevItem.type === 'thread-child' &&
-      nextItem && nextItem.type === 'thread-child' &&
-      prevItem.threadId === nextItem.threadId
-    ) {
+    // Case 2: Dropped after a thread child
+    else if (prevItem && prevItem.type === 'thread-child') {
       targetThreadId = prevItem.threadId;
     }
     // Otherwise: targetThreadId remains undefined → extract from thread
@@ -478,14 +469,25 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
       await db.logs.update(logId, { threadId: targetThreadId });
 
       // Get all thread members from the simulated nextList in their new order
-      // We need to include the dragged item (which may not have threadId yet in nextList)
-      const members = nextList.filter((item): item is Extract<FlatItem, { type: 'thread-header' | 'thread-child' }> =>
-        (item.type === 'thread-header' || item.type === 'thread-child') &&
-        (item.threadId === targetThreadId || item.log.id === logId) // Include the dragged item
-      );
+      // Filter by log ID instead of type/threadId to catch the dragged item
+      const threadLogIds = new Set<number>();
 
-      // Extract the IDs in the order they appear in nextList
-      const ids = members.map(m => m.log.id!);
+      // First, get all existing thread members
+      const existingMembers = await db.logs.where('threadId').equals(targetThreadId).toArray();
+      existingMembers.forEach(log => threadLogIds.add(log.id!));
+
+      // Add the dragged item
+      threadLogIds.add(logId);
+
+      // Now extract IDs in the order they appear in nextList
+      const ids: number[] = [];
+      nextList.forEach(item => {
+        if (item.type !== 'single' && item.type !== 'thread-header' && item.type !== 'thread-child') return;
+        const itemLogId = item.log.id!;
+        if (threadLogIds.has(itemLogId) && !ids.includes(itemLogId)) {
+          ids.push(itemLogId);
+        }
+      });
 
       // Update all thread members with their new order
       await updateThreadOrder(targetThreadId, ids);
