@@ -47,7 +47,7 @@ const AppBanner = styled.div`
   justify-content: space-between;
   align-items: center;
   margin-bottom: 0.25rem;
-  opacity: 0.6;
+  opacity: 0.75;
 `;
 
 const AppTitle = styled.div`
