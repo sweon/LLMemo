@@ -1,24 +1,33 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Toast } from './UI/Toast';
 
+/**
+ * Handles Android back button logic:
+ * 1. If not at root, go to root.
+ * 2. If at root, double-tap to exit with a toast warning.
+ */
 export const AndroidExitHandler: React.FC = () => {
-    const location = useLocation();
     const navigate = useNavigate();
     const [showToast, setShowToast] = useState(false);
     const lastPressTime = useRef<number>(0);
-    const isAtRoot = location.pathname === '/' || location.pathname === '';
 
     useEffect(() => {
-        // Push a dummy state to history so we can intercept the next back button
+        // We always want to intercept popstate to implement our custom back behavior
+        // First, push a dummy state to history so we have something to "pop"
         window.history.pushState({ noExit: true }, '');
 
         const handlePopState = (_event: PopStateEvent) => {
-            if (!isAtRoot) {
-                // If not at root, go back to root with replace: true to flatten history
+            const currentPath = window.location.hash.replace('#', '') || '/';
+            // In HashRouter, we should check hash. In typical BrowserRouter, pathname.
+            // This app uses HashRouter (based on previous logs/metadata).
+
+            const isRoot = currentPath === '/' || currentPath === '';
+
+            if (!isRoot) {
+                // If not at root, navigate to root and prevent going further back
                 navigate('/', { replace: true });
-                // We need to re-push dummy state because navigate('/') might have consumed it
-                // or changed the state. Actually navigate(..., {replace: true}) affects current entry.
+                // Re-push dummy state to keep intercepting
                 window.history.pushState({ noExit: true }, '');
                 return;
             }
@@ -28,14 +37,14 @@ export const AndroidExitHandler: React.FC = () => {
             const timeDiff = now - lastPressTime.current;
 
             if (timeDiff < 2000) {
-                // Secondary press: allow exit
-                // By not pushing state again, the next popstate will exit the app
+                // Secondary press: actually exit (let the browser go back)
+                // We don't push state here, so the next back button (or if history.back() is called)
+                // will actually exit the app.
                 window.history.back();
             } else {
-                // First press: prevent exit and show warning
+                // First press: prevent exit, show warning, and stay on root
                 lastPressTime.current = now;
                 setShowToast(true);
-
                 // Re-push the dummy state to keep the user on the current page
                 window.history.pushState({ noExit: true }, '');
             }
@@ -46,13 +55,13 @@ export const AndroidExitHandler: React.FC = () => {
         return () => {
             window.removeEventListener('popstate', handlePopState);
         };
-    }, [isAtRoot, navigate]);
+    }, [navigate]);
 
     if (!showToast) return null;
 
     return (
         <Toast
-            message="뒤로 가기 버튼을 한 번 더 누르면 종료됩니다."
+            message="한번 더 누르면 앱이 종료됩니다."
             onClose={() => setShowToast(false)}
         />
     );
