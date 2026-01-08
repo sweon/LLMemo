@@ -542,7 +542,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
       <Header>
         <AppBanner>
           <AppTitle>LLMemo</AppTitle>
-          <AppVersionText>v1.4.1</AppVersionText>
+          <AppVersionText>v1.4.2</AppVersionText>
         </AppBanner>
         <TopActions>
           <Button onClick={() => {
@@ -597,7 +597,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
             </Tooltip>
 
             <Tooltip content={t.sidebar.settings}>
-              <IconButton onClick={() => navigate('/settings')}>
+              <IconButton onClick={() => {
+                navigate('/settings');
+                onCloseMobile();
+              }}>
                 <FiSettings size={18} />
               </IconButton>
             </Tooltip>
