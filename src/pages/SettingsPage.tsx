@@ -828,7 +828,7 @@ export const SettingsPage: React.FC = () => {
           </div>
 
           <div style={{ marginTop: '2rem', padding: '1rem', background: 'var(--surface-color)', borderRadius: '8px', fontSize: '0.85rem', color: 'var(--text-secondary)', textAlign: 'center' }}>
-            LLMemo v1.4.6 • Local-First LLM Interaction Logger
+            LLMemo v1.4.7 • Local-First LLM Interaction Logger
           </div>
         </Section>
       )}
