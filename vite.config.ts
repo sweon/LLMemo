@@ -14,7 +14,7 @@ export default defineConfig({
         skipWaiting: false,
         clientsClaim: false,
       },
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
+      includeAssets: ['favicon.png', 'apple-touch-icon.png'],
       manifest: {
         name: 'LLMemo',
         short_name: 'LLMemo',
