@@ -21,6 +21,10 @@ const Container = styled.div`
   overflow-y: auto;
   padding: 24px 32px;
   width: 100%;
+
+  @media (max-width: 600px) {
+    padding: 16px 12px;
+  }
 `;
 
 const Header = styled.div`

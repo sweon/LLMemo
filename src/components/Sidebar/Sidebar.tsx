@@ -542,7 +542,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
       <Header>
         <AppBanner>
           <AppTitle>LLMemo</AppTitle>
-          <AppVersionText>v1.4.0</AppVersionText>
+          <AppVersionText>v1.4.1</AppVersionText>
         </AppBanner>
         <TopActions>
           <Button onClick={() => {
