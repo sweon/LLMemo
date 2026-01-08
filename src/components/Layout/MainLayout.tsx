@@ -71,10 +71,20 @@ const ResizeHandle = styled.div<{ $isResizing: boolean }>`
 
   /* Mobile: ResizeHandle shown only when sidebar is open (via conditional rendering) */
   @media (max-width: 768px) {
+    width: 8px;
     z-index: 20;
     position: fixed;
     height: 100%;
     left: var(--sidebar-x, 0px);
+    /* Make it slightly visible so user knows it's there */
+    background: ${({ theme, $isResizing }) => $isResizing ? theme.colors.primary : theme.colors.border};
+    opacity: ${({ $isResizing }) => $isResizing ? 1 : 0.3};
+    
+    /* Larger touch target on mobile */
+    &::after {
+      left: -20px;
+      right: -20px;
+    }
   }
   
   /* Desktop-only class: visible on desktop, hidden on mobile */
@@ -131,11 +141,11 @@ export const MainLayout: React.FC = () => {
 
   const startResizing = useCallback((e: React.MouseEvent | React.TouchEvent) => {
     if ('touches' in e) {
-      // Long press logic for touch
+      // Shorter long press for mobile - just 200ms to start resizing
       longPressTimer.current = setTimeout(() => {
         setIsResizing(true);
         if (navigator.vibrate) navigator.vibrate(50);
-      }, 500);
+      }, 200);
     } else {
       e.preventDefault();
       setIsResizing(true);
