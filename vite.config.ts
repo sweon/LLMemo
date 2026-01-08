@@ -9,6 +9,11 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'prompt',
+      // Disable automatic update checking - only manual checks via registration.update()
+      workbox: {
+        skipWaiting: false,
+        clientsClaim: false,
+      },
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
       manifest: {
         name: 'LLMemo',

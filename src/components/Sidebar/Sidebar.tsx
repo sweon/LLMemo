@@ -224,8 +224,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
     needRefresh: [needRefresh],
     updateServiceWorker,
   } = useRegisterSW({
+    // Do NOT check for updates automatically on load or periodically
+    // Updates will ONLY be checked when user manually clicks the update button
+    immediate: false,
     onRegistered(r) {
       console.log('SW Registered: ' + r)
+      // No automatic update checks here
     },
     onRegisterError(error) {
       console.log('SW registration error', error)
@@ -548,7 +552,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
       <Header>
         <AppBanner>
           <AppTitle>LLMemo</AppTitle>
-          <AppVersionText>v1.4.5</AppVersionText>
+          <AppVersionText>v1.4.6</AppVersionText>
         </AppBanner>
         <TopActions>
           <Button onClick={() => {
