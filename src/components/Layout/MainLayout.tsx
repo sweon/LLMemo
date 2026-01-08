@@ -50,9 +50,11 @@ const ResizeHandle = styled.div<{ $isResizing: boolean }>`
   cursor: col-resize;
   background: ${({ $isResizing, theme }) => $isResizing ? theme.colors.primary : 'transparent'};
   transition: background 0.2s;
-  z-index: 15;
-  margin-left: -2px;
-  position: relative;
+  z-index: 25;
+  position: absolute;
+  right: 0;
+  top: 0;
+  height: 100%;
   touch-action: none;
 
   &::after {
@@ -68,29 +70,18 @@ const ResizeHandle = styled.div<{ $isResizing: boolean }>`
     background: ${({ theme }) => theme.colors.primary};
     opacity: 0.5;
   }
-
-  /* Mobile: ResizeHandle shown only when sidebar is open (via conditional rendering) */
+  
   @media (max-width: 768px) {
     width: 8px;
-    z-index: 20;
-    position: fixed;
-    height: 100%;
-    left: var(--sidebar-x, 0px);
-    /* Make it slightly visible so user knows it's there */
+    right: 0;
+    /* Make it visible so user knows it's there */
     background: ${({ theme, $isResizing }) => $isResizing ? theme.colors.primary : theme.colors.border};
-    opacity: ${({ $isResizing }) => $isResizing ? 1 : 0.3};
+    opacity: ${({ $isResizing }) => $isResizing ? 1 : 0.4};
     
     /* Larger touch target on mobile */
     &::after {
       left: -20px;
       right: -20px;
-    }
-  }
-  
-  /* Desktop-only class: visible on desktop, hidden on mobile */
-  &.desktop-only {
-    @media (max-width: 768px) {
-      display: none;
     }
   }
 `;
@@ -209,24 +200,14 @@ export const MainLayout: React.FC = () => {
       <Overlay $isOpen={isSidebarOpen} onClick={() => setSidebarOpen(false)} />
       <SidebarWrapper $isOpen={isSidebarOpen} $width={sidebarWidth}>
         <Sidebar onCloseMobile={() => setSidebarOpen(false)} />
-      </SidebarWrapper>
-      {/* Only enable resize on mobile when sidebar is open */}
-      {isSidebarOpen && (
+        {/* Resize handle - always attached to the right edge of sidebar */}
         <ResizeHandle
           $isResizing={isResizing}
           onMouseDown={startResizing}
           onTouchStart={startResizing}
           onTouchEnd={stopResizing}
         />
-      )}
-      {/* Always show on desktop */}
-      <ResizeHandle
-        $isResizing={isResizing}
-        onMouseDown={startResizing}
-        onTouchStart={startResizing}
-        onTouchEnd={stopResizing}
-        className="desktop-only"
-      />
+      </SidebarWrapper>
       <ContentWrapper>
         <MobileHeader>
           <FiMenu size={24} onClick={() => setSidebarOpen(true)} />
