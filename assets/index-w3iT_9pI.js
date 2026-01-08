@@ -645,14 +645,14 @@ ${bt.current.stack}
   justify-content: space-between;
   align-items: center;
   margin-bottom: 0.25rem;
-  opacity: 0.75;
+  opacity: 0.9;
 `,KL=rn.div`
-  font-size: 0.7rem;
+  font-size: 0.8rem;
   font-weight: 800;
   letter-spacing: 0.05em;
   color: ${({theme:e})=>e.colors.textSecondary};
 `,QL=rn.div`
-  font-size: 0.6rem;
+  font-size: 0.7rem;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   color: ${({theme:e})=>e.colors.textSecondary};
 `,qL=rn.div`
