@@ -38,9 +38,31 @@ const SidebarContainer = styled.div`
 `;
 
 const Header = styled.div`
-  padding: 0.75rem 1rem;
+  padding: 0.5rem 1rem 0.75rem;
   border-bottom: 1px solid ${({ theme }) => theme.colors.border};
 `;
+
+const AppBanner = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.25rem;
+  opacity: 0.6;
+`;
+
+const AppTitle = styled.div`
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: ${({ theme }) => theme.colors.textSecondary};
+`;
+
+const AppVersionText = styled.div`
+  font-size: 0.6rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  color: ${({ theme }) => theme.colors.textSecondary};
+`;
+
 
 const SearchInputWrapper = styled.div`
   position: relative;
@@ -518,6 +540,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
   return (
     <SidebarContainer>
       <Header>
+        <AppBanner>
+          <AppTitle>LLMemo</AppTitle>
+          <AppVersionText>v1.3.14</AppVersionText>
+        </AppBanner>
         <TopActions>
           <Button onClick={() => {
             navigate('/new');
