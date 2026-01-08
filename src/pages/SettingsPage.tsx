@@ -3,13 +3,16 @@ import styled from 'styled-components';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../db';
 import { exportData, importData } from '../utils/backup';
-import { FiTrash2, FiPlus, FiDownload, FiUpload, FiChevronRight, FiArrowLeft, FiDatabase, FiCpu, FiGlobe, FiInfo, FiShare2, FiAlertTriangle } from 'react-icons/fi';
-import { MdDragIndicator } from 'react-icons/md';
+import { FiTrash2, FiPlus, FiDownload, FiUpload, FiChevronRight, FiArrowLeft, FiDatabase, FiCpu, FiGlobe, FiInfo, FiShare2, FiAlertTriangle, FiSun, FiMoon } from 'react-icons/fi';
+import { MdDragIndicator, MdPalette } from 'react-icons/md';
 import { DragDropContext, Droppable } from '@hello-pangea/dnd';
 import type { DropResult } from '@hello-pangea/dnd';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useTheme } from '../contexts/ThemeContext';
+import { lightThemes, darkThemes } from '../theme';
 import { type Language } from '../translations';
 import { TouchDelayDraggable } from '../components/Sidebar/TouchDelayDraggable';
+
 
 const Container = styled.div`
   padding: 24px 32px;
@@ -132,6 +135,71 @@ const BackButton = styled.button`
     color: ${({ theme }) => theme.colors.text};
   }
 `;
+
+const ThemeGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+`;
+
+const ThemeCard = styled.button<{ $isActive: boolean }>`
+  background: ${({ theme }) => theme.colors.surface};
+  border: 2px solid ${({ theme, $isActive }) => $isActive ? theme.colors.primary : theme.colors.border};
+  border-radius: 12px;
+  padding: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
+  overflow: hidden;
+
+  &:hover {
+    border-color: ${({ theme }) => theme.colors.primary};
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  .swatch-group {
+    display: flex;
+    width: 100%;
+    height: 48px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid ${({ theme }) => theme.colors.border};
+  }
+
+  .swatch {
+    flex: 1;
+    height: 100%;
+  }
+
+  .name {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: ${({ theme }) => theme.colors.text};
+    text-align: center;
+    width: 100%;
+  }
+
+  ${({ $isActive, theme }) => $isActive && `
+    background: ${theme.colors.background};
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  `}
+`;
+
+const SectionTitle = styled.h3`
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 1.5rem 0 1rem;
+  color: ${({ theme }) => theme.colors.textSecondary};
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+`;
+
 
 const ModelList = styled.ul`
   list-style: none;
@@ -372,12 +440,14 @@ const HelpList = styled.ul`
   }
 `;
 
-type SubMenu = 'main' | 'models' | 'data' | 'language' | 'about';
+type SubMenu = 'main' | 'models' | 'data' | 'theme' | 'language' | 'about';
 
 export const SettingsPage: React.FC = () => {
   const { t, language, setLanguage } = useLanguage();
+  const { mode, themeName, setTheme, toggleTheme } = useTheme();
   const [currentSubMenu, setCurrentSubMenu] = useState<SubMenu>('main');
   const models = useLiveQuery(() => db.models.orderBy('order').toArray());
+
 
   useEffect(() => {
     const initializeOrder = async () => {
@@ -551,6 +621,16 @@ export const SettingsPage: React.FC = () => {
               <FiChevronRight className="chevron" />
             </MenuButton>
 
+            <MenuButton onClick={() => setCurrentSubMenu('theme')}>
+              <div className="icon-wrapper"><MdPalette /></div>
+              <div className="label-wrapper">
+                <span className="title">{t.settings.theme_selection}</span>
+                <span className="desc">Choose your favorite colors</span>
+              </div>
+              <FiChevronRight className="chevron" />
+            </MenuButton>
+
+
             <MenuButton onClick={() => setCurrentSubMenu('language')}>
               <div className="icon-wrapper"><FiGlobe /></div>
               <div className="label-wrapper">
@@ -652,7 +732,58 @@ export const SettingsPage: React.FC = () => {
         </Section>
       )}
 
+      {currentSubMenu === 'theme' && (
+        <Section>
+          {renderHeader(t.settings.theme_selection)}
+
+          <SectionTitle><FiSun /> Light Modes</SectionTitle>
+          <ThemeGrid>
+            {Object.entries(lightThemes).map(([name, themeConfig]) => (
+              <ThemeCard
+                key={name}
+                $isActive={themeName === name && mode === 'light'}
+                onClick={() => {
+                  if (mode !== 'light') toggleTheme();
+                  setTheme(name);
+                }}
+              >
+                <div className="swatch-group">
+                  <div className="swatch" style={{ background: themeConfig.colors.background }} />
+                  <div className="swatch" style={{ background: themeConfig.colors.surface }} />
+                  <div className="swatch" style={{ background: themeConfig.colors.primary }} />
+                  <div className="swatch" style={{ background: themeConfig.colors.text }} />
+                </div>
+                <span className="name">{(t.settings.themes as any)[name] || name}</span>
+              </ThemeCard>
+            ))}
+          </ThemeGrid>
+
+          <SectionTitle><FiMoon /> Dark Modes</SectionTitle>
+          <ThemeGrid>
+            {Object.entries(darkThemes).map(([name, themeConfig]) => (
+              <ThemeCard
+                key={name}
+                $isActive={themeName === name && mode === 'dark'}
+                onClick={() => {
+                  if (mode !== 'dark') toggleTheme();
+                  setTheme(name);
+                }}
+              >
+                <div className="swatch-group">
+                  <div className="swatch" style={{ background: themeConfig.colors.background }} />
+                  <div className="swatch" style={{ background: themeConfig.colors.surface }} />
+                  <div className="swatch" style={{ background: themeConfig.colors.primary }} />
+                  <div className="swatch" style={{ background: themeConfig.colors.text }} />
+                </div>
+                <span className="name">{(t.settings.themes as any)[name] || name}</span>
+              </ThemeCard>
+            ))}
+          </ThemeGrid>
+        </Section>
+      )}
+
       {currentSubMenu === 'language' && (
+
         <Section>
           {renderHeader(t.settings.language)}
           <Select
@@ -697,7 +828,7 @@ export const SettingsPage: React.FC = () => {
           </div>
 
           <div style={{ marginTop: '2rem', padding: '1rem', background: 'var(--surface-color)', borderRadius: '8px', fontSize: '0.85rem', color: 'var(--text-secondary)', textAlign: 'center' }}>
-            LLMemo v1.2.0 • Local-First LLM Interaction Logger
+            LLMemo v1.4.0 • Local-First LLM Interaction Logger
           </div>
         </Section>
       )}

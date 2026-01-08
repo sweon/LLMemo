@@ -72,7 +72,29 @@ export const translations = {
             disclaimer_text: "LLMemo is provided 'as is' without warranty. Data is stored locally on your device; you are responsible for maintaining your own backups. The developers are not liable for any data loss.",
             factory_reset: "Factory Reset",
             reset_confirm: "Are you sure? This will delete ALL data including logs, settings, and models. This action CANNOT be undone.",
-            reset_success: "All data has been reset."
+            reset_success: "All data has been reset.",
+            theme_selection: "Theme Selection",
+            themes: {
+                Classic: "Classic",
+                Minimal: "Minimal",
+                Solarized: "Solarized",
+                Rose: "Rose",
+                Lavender: "Lavender",
+                Mint: "Mint",
+                Sky: "Sky",
+                Peach: "Peach",
+                Sand: "Sand",
+                Contrast: "High Contrast",
+                Dark: "Dark",
+                OLED: "OLED",
+                Midnight: "Midnight",
+                Forest: "Forest",
+                Espresso: "Espresso",
+                Graphite: "Graphite",
+                Nord: "Nord",
+                Dracula: "Dracula",
+                Matrix: "Matrix"
+            }
         },
         log_detail: {
             loading: "Loading...",
@@ -207,7 +229,29 @@ export const translations = {
             disclaimer_text: "LLMemo는 보증 없이 '있는 그대로' 제공됩니다. 모든 데이터는 사용자 기기에 로컬로 저장되며, 데이터의 백업 및 관리에 대한 책임은 사용자에게 있습니다. 개발자는 데이터 손실이나 오류에 대해 책임을 지지 않습니다.",
             factory_reset: "전체 데이터 초기화",
             reset_confirm: "정말로 모든 데이터를 삭제하시겠습니까? 로그, 설정, 모델 등 모든 정보가 영구적으로 삭제됩니다. 이 작업은 되돌릴 수 없습니다.",
-            reset_success: "모든 데이터가 초기화되었습니다."
+            reset_success: "모든 데이터가 초기화되었습니다.",
+            theme_selection: "테마 선택",
+            themes: {
+                Classic: "클래식",
+                Minimal: "미니멀",
+                Solarized: "솔라라이즈드",
+                Rose: "로즈",
+                Lavender: "라벤더",
+                Mint: "민트",
+                Sky: "스카이",
+                Peach: "피치",
+                Sand: "샌드",
+                Contrast: "고대비",
+                Dark: "다크",
+                OLED: "OLED",
+                Midnight: "미드나잇",
+                Forest: "포레스트",
+                Espresso: "에스프레소",
+                Graphite: "그라파이트",
+                Nord: "노드",
+                Dracula: "드라큘라",
+                Matrix: "매트릭스"
+            }
         },
         log_detail: {
             loading: "로딩 중...",

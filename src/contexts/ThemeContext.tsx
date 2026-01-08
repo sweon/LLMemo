@@ -2,14 +2,15 @@ import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { ThemeProvider as StyledThemeProvider } from 'styled-components';
 import type { DefaultTheme } from 'styled-components';
-import { lightTheme, darkTheme } from '../theme';
+import { lightThemes, darkThemes } from '../theme';
+import type { ThemeMode } from '../theme';
 import { GlobalStyle } from '../GlobalStyle';
-
-type ThemeMode = 'light' | 'dark';
 
 interface ThemeContextType {
     mode: ThemeMode;
+    themeName: string;
     toggleTheme: () => void;
+    setTheme: (name: string) => void;
     fontSize: number;
     increaseFontSize: () => void;
     decreaseFontSize: () => void;
@@ -28,8 +29,16 @@ export const useTheme = () => {
 
 export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [mode, setMode] = useState<ThemeMode>(() => {
-        const saved = localStorage.getItem('theme');
+        const saved = localStorage.getItem('themeMode');
         return (saved as ThemeMode) || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    });
+
+    const [lightThemeName, setLightThemeName] = useState<string>(() => {
+        return localStorage.getItem('lightThemeName') || 'Classic';
+    });
+
+    const [darkThemeName, setDarkThemeName] = useState<string>(() => {
+        return localStorage.getItem('darkThemeName') || 'Dark';
     });
 
     const [fontSize, setFontSize] = useState<number>(() => {
@@ -38,8 +47,16 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     });
 
     useEffect(() => {
-        localStorage.setItem('theme', mode);
+        localStorage.setItem('themeMode', mode);
     }, [mode]);
+
+    useEffect(() => {
+        localStorage.setItem('lightThemeName', lightThemeName);
+    }, [lightThemeName]);
+
+    useEffect(() => {
+        localStorage.setItem('darkThemeName', darkThemeName);
+    }, [darkThemeName]);
 
     useEffect(() => {
         localStorage.setItem('fontSize', fontSize.toString());
@@ -47,6 +64,14 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
     const toggleTheme = () => {
         setMode((prev) => (prev === 'light' ? 'dark' : 'light'));
+    };
+
+    const setTheme = (name: string) => {
+        if (mode === 'light') {
+            setLightThemeName(name);
+        } else {
+            setDarkThemeName(name);
+        }
     };
 
     const increaseFontSize = () => {
@@ -57,13 +82,25 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         setFontSize(prev => Math.max(prev - 1, 12));
     };
 
+    const themeName = mode === 'light' ? lightThemeName : darkThemeName;
+    const baseTheme = mode === 'light' ? lightThemes[lightThemeName] || lightThemes.Classic : darkThemes[darkThemeName] || darkThemes.Dark;
+
     const currentTheme = {
-        ...(mode === 'light' ? lightTheme : darkTheme),
+        ...baseTheme,
         fontSize
     };
 
     return (
-        <ThemeContext.Provider value={{ mode, toggleTheme, fontSize, increaseFontSize, decreaseFontSize, theme: currentTheme }}>
+        <ThemeContext.Provider value={{
+            mode,
+            themeName,
+            toggleTheme,
+            setTheme,
+            fontSize,
+            increaseFontSize,
+            decreaseFontSize,
+            theme: currentTheme
+        }}>
             <StyledThemeProvider theme={currentTheme}>
                 <GlobalStyle />
                 {children}
@@ -71,3 +108,4 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         </ThemeContext.Provider>
     );
 };
+

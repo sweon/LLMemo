@@ -205,7 +205,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
     else newSet.add(threadId);
     setExpandedThreads(newSet);
   };
-  const { mode, toggleTheme, increaseFontSize, decreaseFontSize } = useTheme();
+  const { theme, mode, toggleTheme, increaseFontSize, decreaseFontSize } = useTheme();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
@@ -542,7 +542,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
       <Header>
         <AppBanner>
           <AppTitle>LLMemo</AppTitle>
-          <AppVersionText>v1.3.14</AppVersionText>
+          <AppVersionText>v1.4.0</AppVersionText>
         </AppBanner>
         <TopActions>
           <Button onClick={() => {
@@ -625,9 +625,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
               flex: 1,
               padding: '0.5rem',
               borderRadius: '6px',
-              border: '1px solid #e5e7eb', // theme.colors.border hardcoded for now or use styled comp
-              background: mode === 'dark' ? '#1e293b' : '#fff',
-              color: mode === 'dark' ? '#f8fafc' : '#111827'
+              border: `1px solid ${theme.colors.border}`,
+              background: theme.colors.surface,
+              color: theme.colors.text
             }}
           >
             <option value="date-desc">{t.sidebar.newest}</option>

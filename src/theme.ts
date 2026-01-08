@@ -1,33 +1,314 @@
 import type { DefaultTheme } from 'styled-components';
 
-export const lightTheme: DefaultTheme = {
-    mode: 'light',
-    fontSize: 16,
-    colors: {
-        background: '#ffffff',
-        surface: '#f3f4f6', // gray-100
-        border: '#e5e7eb', // gray-200
-        text: '#111827', // gray-900
-        textSecondary: '#4b5563', // gray-600
-        primary: '#2563eb', // blue-600
-        primaryHover: '#1d4ed8', // blue-700
-        danger: '#ef4444', // red-500
-        success: '#10b981', // green-500
+export type ThemeMode = 'light' | 'dark';
+
+export const lightThemes: Record<string, DefaultTheme> = {
+    Classic: {
+        mode: 'light',
+        fontSize: 16,
+        colors: {
+            background: '#ffffff',
+            surface: '#f3f4f6',
+            border: '#e5e7eb',
+            text: '#111827',
+            textSecondary: '#4b5563',
+            primary: '#2563eb',
+            primaryHover: '#1d4ed8',
+            danger: '#ef4444',
+            success: '#10b981',
+        },
+    },
+    Minimal: {
+        mode: 'light',
+        fontSize: 16,
+        colors: {
+            background: '#ffffff',
+            surface: '#fafafa',
+            border: '#f0f0f0',
+            text: '#262626',
+            textSecondary: '#737373',
+            primary: '#000000',
+            primaryHover: '#404040',
+            danger: '#dc2626',
+            success: '#16a34a',
+        },
+    },
+    Solarized: {
+        mode: 'light',
+        fontSize: 16,
+        colors: {
+            background: '#fdf6e3',
+            surface: '#eee8d5',
+            border: '#dcd8c0',
+            text: '#073642',
+            textSecondary: '#586e75',
+            primary: '#b58900',
+            primaryHover: '#cb4b16',
+            danger: '#dc322f',
+            success: '#859900',
+        },
+    },
+    Rose: {
+        mode: 'light',
+        fontSize: 16,
+        colors: {
+            background: '#fff1f2',
+            surface: '#ffe4e6',
+            border: '#fecdd3',
+            text: '#881337',
+            textSecondary: '#9f1239',
+            primary: '#e11d48',
+            primaryHover: '#fb7185',
+            danger: '#be123c',
+            success: '#10b981',
+        },
+    },
+    Lavender: {
+        mode: 'light',
+        fontSize: 16,
+        colors: {
+            background: '#f5f3ff',
+            surface: '#ede9fe',
+            border: '#ddd6fe',
+            text: '#4c1d95',
+            textSecondary: '#5b21b6',
+            primary: '#7c3aed',
+            primaryHover: '#a78bfa',
+            danger: '#ef4444',
+            success: '#10b981',
+        },
+    },
+    Mint: {
+        mode: 'light',
+        fontSize: 16,
+        colors: {
+            background: '#f0fdf4',
+            surface: '#dcfce7',
+            border: '#bbf7d0',
+            text: '#14532d',
+            textSecondary: '#166534',
+            primary: '#16a34a',
+            primaryHover: '#4ade80',
+            danger: '#ef4444',
+            success: '#059669',
+        },
+    },
+    Sky: {
+        mode: 'light',
+        fontSize: 16,
+        colors: {
+            background: '#f0f9ff',
+            surface: '#e0f2fe',
+            border: '#bae6fd',
+            text: '#0c4a6e',
+            textSecondary: '#075985',
+            primary: '#0284c7',
+            primaryHover: '#38bdf8',
+            danger: '#ef4444',
+            success: '#10b981',
+        },
+    },
+    Peach: {
+        mode: 'light',
+        fontSize: 16,
+        colors: {
+            background: '#fff7ed',
+            surface: '#ffedd5',
+            border: '#fed7aa',
+            text: '#7c2d12',
+            textSecondary: '#9a3412',
+            primary: '#ea580c',
+            primaryHover: '#fb923c',
+            danger: '#ef4444',
+            success: '#10b981',
+        },
+    },
+    Sand: {
+        mode: 'light',
+        fontSize: 16,
+        colors: {
+            background: '#f5f5dc',
+            surface: '#e3e3c0',
+            border: '#d2d2a0',
+            text: '#4a4a00',
+            textSecondary: '#6b6b00',
+            primary: '#8b4513',
+            primaryHover: '#a0522d',
+            danger: '#8b0000',
+            success: '#006400',
+        },
+    },
+    Contrast: {
+        mode: 'light',
+        fontSize: 16,
+        colors: {
+            background: '#ffffff',
+            surface: '#ffffff',
+            border: '#000000',
+            text: '#000000',
+            textSecondary: '#000000',
+            primary: '#000000',
+            primaryHover: '#000000',
+            danger: '#000000',
+            success: '#000000',
+        },
     },
 };
 
-export const darkTheme: DefaultTheme = {
-    mode: 'dark',
-    fontSize: 16,
-    colors: {
-        background: '#0f172a', // slate-900
-        surface: '#1e293b', // slate-800
-        border: '#334155', // slate-700
-        text: '#f8fafc', // slate-50
-        textSecondary: '#94a3b8', // slate-400
-        primary: '#3b82f6', // blue-500
-        primaryHover: '#60a5fa', // blue-400
-        danger: '#f87171', // red-400
-        success: '#34d399', // green-400
+export const darkThemes: Record<string, DefaultTheme> = {
+    Dark: {
+        mode: 'dark',
+        fontSize: 16,
+        colors: {
+            background: '#0f172a',
+            surface: '#1e293b',
+            border: '#334155',
+            text: '#f8fafc',
+            textSecondary: '#94a3b8',
+            primary: '#3b82f6',
+            primaryHover: '#60a5fa',
+            danger: '#f87171',
+            success: '#34d399',
+        },
+    },
+    OLED: {
+        mode: 'dark',
+        fontSize: 16,
+        colors: {
+            background: '#000000',
+            surface: '#111111',
+            border: '#222222',
+            text: '#ffffff',
+            textSecondary: '#a0a0a0',
+            primary: '#3b82f6',
+            primaryHover: '#60a5fa',
+            danger: '#ef4444',
+            success: '#10b981',
+        },
+    },
+    Midnight: {
+        mode: 'dark',
+        fontSize: 16,
+        colors: {
+            background: '#020617',
+            surface: '#0f172a',
+            border: '#1e293b',
+            text: '#f1f5f9',
+            textSecondary: '#94a3b8',
+            primary: '#6366f1',
+            primaryHover: '#818cf8',
+            danger: '#ef4444',
+            success: '#22c55e',
+        },
+    },
+    Forest: {
+        mode: 'dark',
+        fontSize: 16,
+        colors: {
+            background: '#052e16',
+            surface: '#064e3b',
+            border: '#065f46',
+            text: '#ecfdf5',
+            textSecondary: '#a7f3d0',
+            primary: '#10b981',
+            primaryHover: '#34d399',
+            danger: '#f87171',
+            success: '#6ee7b7',
+        },
+    },
+    Rose: {
+        mode: 'dark',
+        fontSize: 16,
+        colors: {
+            background: '#450a0a',
+            surface: '#7f1d1d',
+            border: '#991b1b',
+            text: '#fef2f2',
+            textSecondary: '#fecdd3',
+            primary: '#fb7185',
+            primaryHover: '#fda4af',
+            danger: '#ef4444',
+            success: '#10b981',
+        },
+    },
+    Espresso: {
+        mode: 'dark',
+        fontSize: 16,
+        colors: {
+            background: '#1c1917',
+            surface: '#292524',
+            border: '#44403c',
+            text: '#fafaf9',
+            textSecondary: '#d6d3d1',
+            primary: '#d97706',
+            primaryHover: '#f59e0b',
+            danger: '#ef4444',
+            success: '#10b981',
+        },
+    },
+    Graphite: {
+        mode: 'dark',
+        fontSize: 16,
+        colors: {
+            background: '#18181b',
+            surface: '#27272a',
+            border: '#3f3f46',
+            text: '#f4f4f5',
+            textSecondary: '#a1a1aa',
+            primary: '#a1a1aa',
+            primaryHover: '#d4d4d8',
+            danger: '#ef4444',
+            success: '#10b981',
+        },
+    },
+    Nord: {
+        mode: 'dark',
+        fontSize: 16,
+        colors: {
+            background: '#2e3440',
+            surface: '#3b4252',
+            border: '#434c5e',
+            text: '#eceff4',
+            textSecondary: '#d8dee9',
+            primary: '#88c0d0',
+            primaryHover: '#8fbcbb',
+            danger: '#bf616a',
+            success: '#a3be8c',
+        },
+    },
+    Dracula: {
+        mode: 'dark',
+        fontSize: 16,
+        colors: {
+            background: '#282a36',
+            surface: '#44475a',
+            border: '#6272a4',
+            text: '#f8f8f2',
+            textSecondary: '#bd93f9',
+            primary: '#bd93f9',
+            primaryHover: '#ff79c6',
+            danger: '#ff5555',
+            success: '#50fa7b',
+        },
+    },
+    Matrix: {
+        mode: 'dark',
+        fontSize: 16,
+        colors: {
+            background: '#000000',
+            surface: '#001a00',
+            border: '#003300',
+            text: '#00ff00',
+            textSecondary: '#008000',
+            primary: '#00ff00',
+            primaryHover: '#00ff40',
+            danger: '#ff0000',
+            success: '#00ff00',
+        },
     },
 };
+
+// For backward compatibility if needed, but we should use the above
+export const lightTheme = lightThemes.Classic;
+export const darkTheme = darkThemes.Dark;
+
