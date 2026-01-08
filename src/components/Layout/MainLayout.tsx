@@ -45,7 +45,7 @@ const ContentWrapper = styled.div`
   position: relative;
 `;
 
-const ResizeHandle = styled.div<{ $isResizing: boolean; $sidebarOpen: boolean }>`
+const ResizeHandle = styled.div<{ $isResizing: boolean }>`
   width: 4px;
   cursor: col-resize;
   background: ${({ $isResizing, theme }) => $isResizing ? theme.colors.primary : 'transparent'};
@@ -69,15 +69,22 @@ const ResizeHandle = styled.div<{ $isResizing: boolean; $sidebarOpen: boolean }>
     opacity: 0.5;
   }
 
+  /* Mobile: ResizeHandle shown only when sidebar is open (via conditional rendering) */
   @media (max-width: 768px) {
-    /* Hide resize handle on mobile when sidebar is closed */
-    display: ${({ $sidebarOpen }) => $sidebarOpen ? 'block' : 'none'};
     z-index: 20;
     position: fixed;
     height: 100%;
     left: var(--sidebar-x, 0px);
   }
+  
+  /* Desktop-only class: visible on desktop, hidden on mobile */
+  &.desktop-only {
+    @media (max-width: 768px) {
+      display: none;
+    }
+  }
 `;
+
 
 const MobileHeader = styled.div`
   display: none;
@@ -193,12 +200,22 @@ export const MainLayout: React.FC = () => {
       <SidebarWrapper $isOpen={isSidebarOpen} $width={sidebarWidth}>
         <Sidebar onCloseMobile={() => setSidebarOpen(false)} />
       </SidebarWrapper>
+      {/* Only enable resize on mobile when sidebar is open */}
+      {isSidebarOpen && (
+        <ResizeHandle
+          $isResizing={isResizing}
+          onMouseDown={startResizing}
+          onTouchStart={startResizing}
+          onTouchEnd={stopResizing}
+        />
+      )}
+      {/* Always show on desktop */}
       <ResizeHandle
         $isResizing={isResizing}
-        $sidebarOpen={isSidebarOpen}
         onMouseDown={startResizing}
         onTouchStart={startResizing}
         onTouchEnd={stopResizing}
+        className="desktop-only"
       />
       <ContentWrapper>
         <MobileHeader>
