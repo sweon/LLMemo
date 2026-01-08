@@ -645,7 +645,7 @@ ${bt.current.stack}
   justify-content: space-between;
   align-items: center;
   margin-bottom: 0.25rem;
-  opacity: 0.6;
+  opacity: 0.75;
 `,KL=rn.div`
   font-size: 0.7rem;
   font-weight: 800;
