@@ -292,7 +292,7 @@ export const LogDetail: React.FC = () => {
                 threadOrder
             });
 
-            navigate(`/log/${newLogId}?edit=true`);
+            navigate(`/log/${newLogId}?edit=true`, { replace: true });
         } catch (error) {
             console.error("Failed to add thread:", error);
             alert("Failed to add thread. Please try again.");

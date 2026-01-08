@@ -18,12 +18,13 @@ interface Props {
     onLogClick?: () => void;
     isCombineTarget?: boolean;
     t: TranslationKeys;
+    replace?: boolean;
 }
 
 export const SidebarThreadItem: React.FC<Props> = ({
     threadId, logs, index, collapsed, onToggle,
     activeLogId, modelMap, formatDate, untitledText, onLogClick,
-    isCombineTarget, t
+    isCombineTarget, t, replace
 }) => {
     const headLog = logs[0];
     const bodyLogs = logs.slice(1);
@@ -48,7 +49,7 @@ export const SidebarThreadItem: React.FC<Props> = ({
                     <div {...provided.dragHandleProps} style={{ position: 'relative' }}>
                         <LogItemLink
                             to={`/log/${headLog.id}`}
-                            replace={true}
+                            replace={replace}
                             $isActive={activeLogId === headLog.id}
                             $inThread={false}
                             onClick={onLogClick}

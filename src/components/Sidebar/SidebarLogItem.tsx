@@ -13,6 +13,7 @@ interface Props {
     inThread?: boolean;
     untitledText: string;
     isCombineTarget?: boolean;
+    replace?: boolean;
 }
 
 export const SidebarLogItem: React.FC<Props> = ({
@@ -24,7 +25,8 @@ export const SidebarLogItem: React.FC<Props> = ({
     formatDate,
     inThread,
     untitledText,
-    isCombineTarget
+    isCombineTarget,
+    replace
 }) => {
     const draggableId = inThread ? `thread-child-${log.id}` : String(log.id);
 
@@ -47,7 +49,7 @@ export const SidebarLogItem: React.FC<Props> = ({
                 >
                     <LogItemLink
                         to={`/log/${log.id}`}
-                        replace={true}
+                        replace={replace}
                         $isActive={isActive}
                         $inThread={inThread}
                         onClick={onClick}

@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../db';
 import type { Log } from '../../db';
-import { useNavigate, useParams } from 'react-router-dom'; // Ensure react-router-dom is installed
+import { useNavigate, useParams, useLocation } from 'react-router-dom'; // Ensure react-router-dom is installed
 import { FiPlus, FiMinus, FiSettings, FiSun, FiMoon, FiSearch, FiX, FiRefreshCw, FiArrowUpCircle } from 'react-icons/fi';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 import { Tooltip } from '../UI/Tooltip';
@@ -207,7 +207,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
   };
   const { theme, mode, toggleTheme, increaseFontSize, decreaseFontSize } = useTheme();
   const navigate = useNavigate();
+  const location = useLocation();
   const { id } = useParams<{ id: string }>();
+
+  // Decide whether to replace history or push.
+  // We only replace if we are already in a sub-page (log detail or settings).
+  // If we are at root (/), we MUST push so that back button can return to root.
+  const isAtSubPage = !!id || location.pathname.includes('/settings');
   const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
   const [isCheckingUpdate, setIsCheckingUpdate] = useState(false);
   const [updateCheckedManually, setUpdateCheckedManually] = useState(false);
@@ -542,7 +548,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
       <Header>
         <AppBanner>
           <AppTitle>LLMemo</AppTitle>
-          <AppVersionText>v1.4.4</AppVersionText>
+          <AppVersionText>v1.4.5</AppVersionText>
         </AppBanner>
         <TopActions>
           <Button onClick={() => {
@@ -598,7 +604,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
 
             <Tooltip content={t.sidebar.settings}>
               <IconButton onClick={() => {
-                navigate('/settings', { replace: true });
+                navigate('/settings', { replace: isAtSubPage });
                 onCloseMobile();
               }}>
                 <FiSettings size={18} />
@@ -663,6 +669,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
                       formatDate={(d: Date) => format(d, 'yy.MM.dd HH:mm')}
                       untitledText={t.sidebar.untitled}
                       isCombineTarget={combineTargetId === String(logId)}
+                      replace={isAtSubPage}
                     />
                   );
                 } else if (item.type === 'thread-header') {
@@ -682,6 +689,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
                       onLogClick={onCloseMobile}
                       isCombineTarget={combineTargetId === `thread-header-${logId}`}
                       t={t}
+                      replace={isAtSubPage}
                     />
                   );
                 } else if (item.type === 'thread-child') {
@@ -698,6 +706,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCloseMobile }) => {
                       untitledText={t.sidebar.untitled}
                       inThread={true}
                       isCombineTarget={combineTargetId === `thread-child-${logId}`}
+                      replace={isAtSubPage}
                     />
                   );
                 }

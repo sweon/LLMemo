@@ -1,61 +1,64 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Toast } from './UI/Toast';
 
 /**
  * Handles Android back button logic:
- * 1. If not at root, go to root.
- * 2. If at root, double-tap to exit with a toast warning.
+ * 1. Ensures we are always 'trapped' at the root with a dummy state.
+ * 2. If back is pressed at root, show toast and require second press within 2s to exit.
  */
 export const AndroidExitHandler: React.FC = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const [showToast, setShowToast] = useState(false);
     const lastPressTime = useRef<number>(0);
 
+    // Helper to check if we are at the app root
+    const isRootPath = () => {
+        const currentPath = window.location.hash.replace('#', '') || '/';
+        return currentPath === '/' || currentPath === '';
+    };
+
     useEffect(() => {
-        // We always want to intercept popstate to implement our custom back behavior
-        // First, push a dummy state to history so we have something to "pop"
-        window.history.pushState({ noExit: true }, '');
-
-        const handlePopState = (_event: PopStateEvent) => {
-            const currentPath = window.location.hash.replace('#', '') || '/';
-            // In HashRouter, we should check hash. In typical BrowserRouter, pathname.
-            // This app uses HashRouter (based on previous logs/metadata).
-
-            const isRoot = currentPath === '/' || currentPath === '';
-
-            if (!isRoot) {
-                // If not at root, navigate to root and prevent going further back
-                navigate('/', { replace: true });
-                // Re-push dummy state to keep intercepting
+        // Ensure that whenever we land on root OR start the app, 
+        // there is a dummy entry ABOVE us in history to catch the 'back' action.
+        if (isRootPath()) {
+            if (!window.history.state || !window.history.state.noExit) {
                 window.history.pushState({ noExit: true }, '');
-                return;
             }
+        }
 
-            // If at root, handle exit logic
-            const now = Date.now();
-            const timeDiff = now - lastPressTime.current;
+        const handlePopState = (e: PopStateEvent) => {
+            const isRoot = isRootPath();
 
-            if (timeDiff < 2000) {
-                // Secondary press: actually exit (let the browser go back)
-                // We don't push state here, so the next back button (or if history.back() is called)
-                // will actually exit the app.
-                window.history.back();
-            } else {
-                // First press: prevent exit, show warning, and stay on root
-                lastPressTime.current = now;
-                setShowToast(true);
-                // Re-push the dummy state to keep the user on the current page
-                window.history.pushState({ noExit: true }, '');
+            // If we just popped a state and landed somewhere without our blocker flag
+            if (!e.state || !e.state.noExit) {
+                if (isRoot) {
+                    const now = Date.now();
+                    const timeDiff = now - lastPressTime.current;
+
+                    if (timeDiff < 2000) {
+                        // Second press: Exit the app for real (pop whatever is below root)
+                        window.history.back();
+                    } else {
+                        // First press at root: Stay here, show warning, re-push blocker
+                        lastPressTime.current = now;
+                        setShowToast(true);
+                        window.history.pushState({ noExit: true }, '');
+                    }
+                } else {
+                    // Popped from a sub-page? 
+                    // Go to root with NO warning (user just wanted to navigate back to list)
+                    navigate('/', { replace: true });
+                    // Immediately re-push dummy to protect root
+                    window.history.pushState({ noExit: true }, '');
+                }
             }
         };
 
         window.addEventListener('popstate', handlePopState);
-
-        return () => {
-            window.removeEventListener('popstate', handlePopState);
-        };
-    }, [navigate]);
+        return () => window.removeEventListener('popstate', handlePopState);
+    }, [navigate, location.pathname]);
 
     if (!showToast) return null;
 
