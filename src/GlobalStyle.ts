@@ -16,14 +16,6 @@ export const GlobalStyle = createGlobalStyle`
 
   * {
     box-sizing: border-box;
-    -webkit-tap-highlight-color: transparent;
-    -webkit-touch-callout: none;
-  }
-
-  /* Disable overscroll glow/bounce effects on Android */
-  html, body {
-    overscroll-behavior: none;
-    -webkit-overflow-scrolling: touch;
   }
 
   a {
