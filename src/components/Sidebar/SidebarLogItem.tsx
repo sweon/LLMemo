@@ -47,6 +47,7 @@ export const SidebarLogItem: React.FC<Props> = ({
                 >
                     <LogItemLink
                         to={`/log/${log.id}`}
+                        replace={true}
                         $isActive={isActive}
                         $inThread={inThread}
                         onClick={onClick}

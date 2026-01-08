@@ -1,30 +1,36 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Toast } from './UI/Toast';
 
 export const AndroidExitHandler: React.FC = () => {
     const location = useLocation();
+    const navigate = useNavigate();
     const [showToast, setShowToast] = useState(false);
     const lastPressTime = useRef<number>(0);
     const isAtRoot = location.pathname === '/' || location.pathname === '';
 
     useEffect(() => {
-        // We only care about the back button at the root of the app
-        if (!isAtRoot) return;
-
         // Push a dummy state to history so we can intercept the next back button
         window.history.pushState({ noExit: true }, '');
 
         const handlePopState = (_event: PopStateEvent) => {
+            if (!isAtRoot) {
+                // If not at root, go back to root with replace: true to flatten history
+                navigate('/', { replace: true });
+                // We need to re-push dummy state because navigate('/') might have consumed it
+                // or changed the state. Actually navigate(..., {replace: true}) affects current entry.
+                window.history.pushState({ noExit: true }, '');
+                return;
+            }
+
+            // If at root, handle exit logic
             const now = Date.now();
             const timeDiff = now - lastPressTime.current;
 
             if (timeDiff < 2000) {
                 // Secondary press: allow exit
-                // Note: We can't actually close the browser/PWA window from JS in most cases
-                // but we can let the history pop happen. 
-                // To actually "exit" an installed PWA on Android, we just stop preventing default.
-                console.log('Exiting app...');
+                // By not pushing state again, the next popstate will exit the app
+                window.history.back();
             } else {
                 // First press: prevent exit and show warning
                 lastPressTime.current = now;
@@ -40,7 +46,7 @@ export const AndroidExitHandler: React.FC = () => {
         return () => {
             window.removeEventListener('popstate', handlePopState);
         };
-    }, [isAtRoot]);
+    }, [isAtRoot, navigate]);
 
     if (!showToast) return null;
 
@@ -51,3 +57,4 @@ export const AndroidExitHandler: React.FC = () => {
         />
     );
 };
+

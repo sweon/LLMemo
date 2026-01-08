@@ -48,6 +48,7 @@ export const SidebarThreadItem: React.FC<Props> = ({
                     <div {...provided.dragHandleProps} style={{ position: 'relative' }}>
                         <LogItemLink
                             to={`/log/${headLog.id}`}
+                            replace={true}
                             $isActive={activeLogId === headLog.id}
                             $inThread={false}
                             onClick={onLogClick}
